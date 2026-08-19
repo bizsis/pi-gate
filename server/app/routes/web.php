@@ -101,6 +101,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/worktime/export', [AdminWorktimeController::class, 'export'])
         ->name('worktime.export');
 
+    Route::get('/worktime/attendance-export', [AdminWorktimeController::class, 'attendanceExport'])
+        ->name('worktime.attendance-export');
+
     Route::get('/photos', [AdminDashboardController::class, 'photos'])
         ->name('photos');
 

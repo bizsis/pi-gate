@@ -18,13 +18,14 @@
             <div class="muted">Havi naptár az IN/OUT blokkolások alapján</div>
         </div>
         <div class="cards-list">
-            <a class="action secondary" href="{{ route('admin.worktime', ['month' => $previousMonth, 'company_id' => $selectedCompanyId]) }}">Előző hónap</a>
-            <a class="action secondary" href="{{ route('admin.worktime', ['month' => $nextMonth, 'company_id' => $selectedCompanyId]) }}">Következő hónap</a>
-            <a class="action" href="{{ route('admin.worktime.export', ['month' => $month->format('Y-m'), 'company_id' => $selectedCompanyId]) }}">CSV export</a>
+            <a class="action secondary" href="{{ route('admin.worktime', array_merge($filterParams, ['month' => $previousMonth])) }}">Előző hónap</a>
+            <a class="action secondary" href="{{ route('admin.worktime', array_merge($filterParams, ['month' => $nextMonth])) }}">Következő hónap</a>
+            <a class="action secondary" href="{{ route('admin.worktime.export', $filterParams) }}">Összesítő export</a>
+            <a class="action" href="{{ route('admin.worktime.attendance-export', $filterParams) }}">Jelenléti export</a>
         </div>
     </div>
 
-    <form class="panel" method="get" action="{{ route('admin.worktime') }}">
+    <form id="worktimeFilterForm" class="panel" method="get" action="{{ route('admin.worktime') }}">
         <div class="form-grid">
             <div class="form-row">
                 <label for="month">Hónap</label>
@@ -39,8 +40,32 @@
                     @endforeach
                 </select>
             </div>
+            <div class="form-row">
+                <label for="employee_q">Dolgozó</label>
+                <input
+                    id="employee_q"
+                    name="employee_q"
+                    type="text"
+                    list="employeeOptions"
+                    value="{{ $selectedEmployeeLabel ?: $employeeSearch }}"
+                    placeholder="Kezdj el gépelni: név, cég, kártyaszám"
+                    autocomplete="off"
+                >
+                <input id="employee_id" name="employee_id" type="hidden" value="{{ $selectedEmployeeId }}">
+                <datalist id="employeeOptions">
+                    @foreach ($employees as $employee)
+                        @php
+                            $cards = $employee->cards->pluck('card_number')->implode(', ');
+                            $label = $employee->name . ' - ' . ($employee->company?->name ?? '-') . ' #' . $employee->id;
+                            $searchLabel = $cards ? $label . ' - ' . $cards : $label;
+                        @endphp
+                        <option data-id="{{ $employee->id }}" value="{{ $searchLabel }}"></option>
+                    @endforeach
+                </datalist>
+            </div>
         </div>
         <div class="form-actions">
+            <a class="action secondary" href="{{ route('admin.worktime') }}">Törlés</a>
             <button class="action" type="submit">Szűrés</button>
         </div>
     </form>
@@ -149,4 +174,20 @@
             @endforeach
         </div>
     </section>
+
+    <script>
+        (function () {
+            const employeeInput = document.getElementById('employee_q');
+            const employeeId = document.getElementById('employee_id');
+            const options = Array.from(document.querySelectorAll('#employeeOptions option'));
+
+            function syncEmployeeId() {
+                const selected = options.find((option) => option.value === employeeInput.value);
+                employeeId.value = selected ? selected.dataset.id : '';
+            }
+
+            employeeInput.addEventListener('input', syncEmployeeId);
+            document.getElementById('worktimeFilterForm').addEventListener('submit', syncEmployeeId);
+        })();
+    </script>
 @endsection

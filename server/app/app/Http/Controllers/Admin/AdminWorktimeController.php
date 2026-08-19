@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Company;
+use App\Models\Employee;
 use App\Models\Event;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -15,24 +16,21 @@ class AdminWorktimeController extends Controller
     public function index(Request $request): View
     {
         $month = $this->selectedMonth($request);
-        $companyId = $request->integer('company_id') ?: null;
-
-        $events = Event::query()
-            ->with(['company', 'employee'])
-            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
-            ->whereBetween('event_at', [
-                $month->startOfMonth()->startOfDay(),
-                $month->endOfMonth()->endOfDay(),
-            ])
-            ->orderBy('event_at')
-            ->get();
+        $filters = $this->selectedFilters($request);
+        $events = $this->worktimeEvents($request, $month)->get();
 
         $days = $this->buildDays($month, $events);
         $employeeSummaries = $this->buildEmployeeSummaries($days);
+        $filterParams = $this->filterParams($month, $filters);
 
         return view('admin.worktime.index', [
             'companies' => Company::query()->orderBy('name')->get(['id', 'name']),
-            'selectedCompanyId' => $companyId,
+            'employees' => $this->employeeOptions(),
+            'selectedCompanyId' => $filters['company_id'],
+            'selectedEmployeeId' => $filters['employee_id'],
+            'employeeSearch' => $filters['employee_q'],
+            'selectedEmployeeLabel' => $this->selectedEmployeeLabel($filters['employee_id']),
+            'filterParams' => $filterParams,
             'month' => $month,
             'previousMonth' => $month->subMonth()->format('Y-m'),
             'nextMonth' => $month->addMonth()->format('Y-m'),
@@ -45,17 +43,7 @@ class AdminWorktimeController extends Controller
     public function export(Request $request): StreamedResponse
     {
         $month = $this->selectedMonth($request);
-        $companyId = $request->integer('company_id') ?: null;
-
-        $events = Event::query()
-            ->with(['company', 'employee'])
-            ->when($companyId, fn ($query) => $query->where('company_id', $companyId))
-            ->whereBetween('event_at', [
-                $month->startOfMonth()->startOfDay(),
-                $month->endOfMonth()->endOfDay(),
-            ])
-            ->orderBy('event_at')
-            ->get();
+        $events = $this->worktimeEvents($request, $month)->get();
 
         $days = $this->buildDays($month, $events);
         $employeeSummaries = $this->buildEmployeeSummaries($days);
@@ -94,6 +82,52 @@ class AdminWorktimeController extends Controller
         ]);
     }
 
+    public function attendanceExport(Request $request): StreamedResponse
+    {
+        $month = $this->selectedMonth($request);
+        $events = $this->worktimeEvents($request, $month)->get();
+        $days = $this->buildDays($month, $events);
+        $fileName = 'pi-gate-jelenlet-' . $month->format('Y-m') . '.csv';
+
+        return response()->streamDownload(function () use ($days): void {
+            $output = fopen('php://output', 'w');
+
+            fwrite($output, "\xEF\xBB\xBF");
+
+            fputcsv($output, [
+                'Dátum',
+                'Dolgozó',
+                'Cég',
+                'Első belépés',
+                'Utolsó kilépés',
+                'Munkaidő',
+                'Összes perc',
+                'Események',
+                'Figyelmeztetések',
+            ], ';');
+
+            foreach ($days as $day) {
+                foreach ($day['employees'] as $employee) {
+                    fputcsv($output, [
+                        $day['date'],
+                        $employee['employee_name'],
+                        $employee['company_name'],
+                        $employee['first_in']?->format('H:i:s') ?? '',
+                        $employee['last_out']?->format('H:i:s') ?? '',
+                        $this->formatMinutes($employee['total_minutes']),
+                        $employee['total_minutes'],
+                        $employee['event_count'],
+                        implode(', ', $employee['warnings']),
+                    ], ';');
+                }
+            }
+
+            fclose($output);
+        }, $fileName, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
     private function selectedMonth(Request $request): CarbonImmutable
     {
         $month = $request->string('month')->toString();
@@ -103,6 +137,77 @@ class AdminWorktimeController extends Controller
         }
 
         return CarbonImmutable::now()->startOfMonth();
+    }
+
+    private function selectedFilters(Request $request): array
+    {
+        return [
+            'company_id' => $request->integer('company_id') ?: null,
+            'employee_id' => $request->integer('employee_id') ?: null,
+            'employee_q' => trim($request->string('employee_q')->toString()),
+        ];
+    }
+
+    private function filterParams(CarbonImmutable $month, array $filters): array
+    {
+        return array_filter([
+            'month' => $month->format('Y-m'),
+            'company_id' => $filters['company_id'],
+            'employee_id' => $filters['employee_id'],
+            'employee_q' => $filters['employee_q'],
+        ], fn ($value) => $value !== null && $value !== '');
+    }
+
+    private function worktimeEvents(Request $request, CarbonImmutable $month)
+    {
+        $filters = $this->selectedFilters($request);
+
+        return Event::query()
+            ->with(['company', 'employee'])
+            ->when($filters['company_id'], fn ($query, $companyId) => $query->where('company_id', $companyId))
+            ->when($filters['employee_id'], fn ($query, $employeeId) => $query->where('employee_id', $employeeId))
+            ->when(! $filters['employee_id'] && $filters['employee_q'] !== '', function ($query) use ($filters): void {
+                $search = '%' . $filters['employee_q'] . '%';
+
+                $query->where(function ($query) use ($search): void {
+                    $query
+                        ->whereHas('employee', fn ($query) => $query->where('name', 'like', $search)->orWhere('external_id', 'like', $search))
+                        ->orWhereHas('card', fn ($query) => $query->where('card_number', 'like', $search));
+                });
+            })
+            ->whereBetween('event_at', [
+                $month->startOfMonth()->startOfDay(),
+                $month->endOfMonth()->endOfDay(),
+            ])
+            ->orderBy('event_at');
+    }
+
+    private function employeeOptions()
+    {
+        return Employee::query()
+            ->with(['company', 'cards'])
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function selectedEmployeeLabel(?int $employeeId): string
+    {
+        if (! $employeeId) {
+            return '';
+        }
+
+        $employee = Employee::query()
+            ->with(['company', 'cards'])
+            ->find($employeeId);
+
+        if (! $employee) {
+            return '';
+        }
+
+        $label = $employee->name . ' - ' . ($employee->company?->name ?? '-') . ' #' . $employee->id;
+        $cards = $employee->cards->pluck('card_number')->implode(', ');
+
+        return $cards ? $label . ' - ' . $cards : $label;
     }
 
     private function buildDays(CarbonImmutable $month, $events): array
@@ -218,6 +323,8 @@ class AdminWorktimeController extends Controller
         }
 
         return [
+            'employee_id' => $employee?->id,
+            'company_id' => $company?->id,
             'employee_name' => $employee?->name ?? 'Ismeretlen dolgozó',
             'company_name' => $company?->name ?? '-',
             'first_in' => $events->firstWhere('event_type', 'IN')?->event_at,
