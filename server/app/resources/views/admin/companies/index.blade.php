@@ -9,6 +9,27 @@
         <a class="action" href="{{ route('admin.companies.create') }}">Új cég</a>
     </div>
 
+    <form class="panel" method="get" action="{{ route('admin.companies') }}">
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="q">Keresés</label>
+                <input id="q" name="q" type="text" value="{{ $filters['q'] ?? '' }}" placeholder="Név, rövid név, adószám, email, telefon">
+            </div>
+            <div class="form-row">
+                <label for="active">Állapot</label>
+                <select id="active" name="active">
+                    <option value="">Minden állapot</option>
+                    <option value="1" @selected(($filters['active'] ?? '') === '1')>Aktív</option>
+                    <option value="0" @selected(($filters['active'] ?? '') === '0')>Inaktív</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="action secondary" href="{{ route('admin.companies') }}">Törlés</a>
+            <button class="action" type="submit">Szűrés</button>
+        </div>
+    </form>
+
     <section class="panel">
         <div class="table-wrap">
             <table>

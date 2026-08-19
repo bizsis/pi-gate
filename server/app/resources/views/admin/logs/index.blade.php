@@ -8,6 +8,45 @@
         </div>
     </div>
 
+    <form class="panel" method="get" action="{{ route('admin.logs') }}">
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="q">Keresés</label>
+                <input id="q" name="q" type="text" value="{{ $filters['q'] ?? '' }}" placeholder="Művelet, rekord, IP, felhasználó">
+            </div>
+            <div class="form-row">
+                <label for="user_id">Felhasználó</label>
+                <select id="user_id" name="user_id">
+                    <option value="">Minden felhasználó</option>
+                    @foreach ($users as $user)
+                        <option value="{{ $user->id }}" @selected((int) ($filters['user_id'] ?? 0) === $user->id)>{{ $user->name }} - {{ $user->email }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="action">Művelet</label>
+                <select id="action" name="action">
+                    <option value="">Minden művelet</option>
+                    @foreach ($actions as $action)
+                        <option value="{{ $action }}" @selected(($filters['action'] ?? '') === $action)>{{ $action }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="date_from">Dátumtól</label>
+                <input id="date_from" name="date_from" type="date" value="{{ $filters['date_from'] ?? '' }}">
+            </div>
+            <div class="form-row">
+                <label for="date_to">Dátumig</label>
+                <input id="date_to" name="date_to" type="date" value="{{ $filters['date_to'] ?? '' }}">
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="action secondary" href="{{ route('admin.logs') }}">Törlés</a>
+            <button class="action" type="submit">Szűrés</button>
+        </div>
+    </form>
+
     <section class="panel">
         <div class="table-wrap">
             <table>

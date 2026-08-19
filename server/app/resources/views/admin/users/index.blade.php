@@ -13,6 +13,28 @@
         <div class="error">{{ $errors->first() }}</div>
     @endif
 
+    <form class="panel" method="get" action="{{ route('admin.users') }}">
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="q">Keresés</label>
+                <input id="q" name="q" type="text" value="{{ $filters['q'] ?? '' }}" placeholder="Név vagy email">
+            </div>
+            <div class="form-row">
+                <label for="role">Jogosultság</label>
+                <select id="role" name="role">
+                    <option value="">Minden jogosultság</option>
+                    @foreach ($roles as $value => $label)
+                        <option value="{{ $value }}" @selected(($filters['role'] ?? '') === $value)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="action secondary" href="{{ route('admin.users') }}">Törlés</a>
+            <button class="action" type="submit">Szűrés</button>
+        </div>
+    </form>
+
     <section class="panel">
         <div class="table-wrap">
             <table>
@@ -47,4 +69,3 @@
         <div class="pager">{{ $users->links() }}</div>
     </section>
 @endsection
-

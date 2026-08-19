@@ -8,6 +8,44 @@
         </div>
     </div>
 
+    <form class="panel" method="get" action="{{ route('admin.events') }}">
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="q">Keresés</label>
+                <input id="q" name="q" type="text" value="{{ $filters['q'] ?? '' }}" placeholder="Dolgozó, kártya, eszköz, UUID">
+            </div>
+            <div class="form-row">
+                <label for="company_id">Cég</label>
+                <select id="company_id" name="company_id">
+                    <option value="">Minden cég</option>
+                    @foreach ($companies as $company)
+                        <option value="{{ $company->id }}" @selected((int) ($filters['company_id'] ?? 0) === $company->id)>{{ $company->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="event_type">Típus</label>
+                <select id="event_type" name="event_type">
+                    <option value="">Minden típus</option>
+                    <option value="IN" @selected(($filters['event_type'] ?? '') === 'IN')>IN - belépés</option>
+                    <option value="OUT" @selected(($filters['event_type'] ?? '') === 'OUT')>OUT - kilépés</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="date_from">Dátumtól</label>
+                <input id="date_from" name="date_from" type="date" value="{{ $filters['date_from'] ?? '' }}">
+            </div>
+            <div class="form-row">
+                <label for="date_to">Dátumig</label>
+                <input id="date_to" name="date_to" type="date" value="{{ $filters['date_to'] ?? '' }}">
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="action secondary" href="{{ route('admin.events') }}">Törlés</a>
+            <button class="action" type="submit">Szűrés</button>
+        </div>
+    </form>
+
     <section class="panel">
         <div class="table-wrap">
             <table>

@@ -17,10 +17,25 @@ class AdminUserController extends Controller
     {
         $this->ensureAdmin($request);
 
+        $filters = $request->only(['q', 'role']);
+
         return view('admin.users.index', [
+            'filters' => $filters,
+            'roles' => User::roles(),
             'users' => User::query()
+                ->when($request->filled('q'), function ($query) use ($request): void {
+                    $search = '%' . $request->string('q')->toString() . '%';
+
+                    $query->where(function ($query) use ($search): void {
+                        $query
+                            ->where('name', 'like', $search)
+                            ->orWhere('email', 'like', $search);
+                    });
+                })
+                ->when($request->filled('role'), fn ($query) => $query->where('role', $request->string('role')->toString()))
                 ->orderBy('name')
-                ->paginate(30),
+                ->paginate(30)
+                ->withQueryString(),
         ]);
     }
 
@@ -141,4 +156,3 @@ class AdminUserController extends Controller
             ->count();
     }
 }
-

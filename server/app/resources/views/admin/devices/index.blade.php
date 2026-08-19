@@ -8,6 +8,36 @@
         </div>
     </div>
 
+    <form class="panel" method="get" action="{{ route('admin.devices') }}">
+        <div class="form-grid">
+            <div class="form-row">
+                <label for="q">Keresés</label>
+                <input id="q" name="q" type="text" value="{{ $filters['q'] ?? '' }}" placeholder="Név, UID, platform, app verzió">
+            </div>
+            <div class="form-row">
+                <label for="company_id">Cég</label>
+                <select id="company_id" name="company_id">
+                    <option value="">Minden cég</option>
+                    @foreach ($companies as $company)
+                        <option value="{{ $company->id }}" @selected((int) ($filters['company_id'] ?? 0) === $company->id)>{{ $company->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="form-row">
+                <label for="active">Állapot</label>
+                <select id="active" name="active">
+                    <option value="">Minden állapot</option>
+                    <option value="1" @selected(($filters['active'] ?? '') === '1')>Aktív</option>
+                    <option value="0" @selected(($filters['active'] ?? '') === '0')>Inaktív</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-actions">
+            <a class="action secondary" href="{{ route('admin.devices') }}">Törlés</a>
+            <button class="action" type="submit">Szűrés</button>
+        </div>
+    </form>
+
     <section class="panel">
         <div class="table-wrap">
             <table>

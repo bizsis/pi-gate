@@ -358,7 +358,7 @@
             font-weight: 700;
             margin: 14px 0 6px;
         }
-        input[type="email"], input[type="password"], input[type="text"], input[type="month"] {
+        input[type="date"], input[type="email"], input[type="password"], input[type="text"], input[type="month"] {
             border: 1px solid var(--line);
             border-radius: 6px;
             font: inherit;
