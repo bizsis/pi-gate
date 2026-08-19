@@ -157,6 +157,28 @@ data class EventBatchError(
 )
 
 // =====================================================
+// ESEMÉNYEK LETÖLTÉSE
+// SZERVER -> PDA
+// =====================================================
+
+data class EventsResponse(
+    val success: Boolean,
+    val events: List<EventDto>
+)
+
+data class EventDto(
+    val id: Long,
+    val client_event_uuid: String,
+    val employee_id: Long,
+    val card_number: String?,
+    val event_type: String,
+    val event_at: String,
+    val latitude: Double?,
+    val longitude: Double?,
+    val updated_at: String?
+)
+
+// =====================================================
 // ESEMÉNY FOTÓ FELTÖLTÉS
 // =====================================================
 
@@ -225,6 +247,16 @@ interface ApiService {
         @Body
         request: EventBatchRequest
     ): EventBatchResponse
+
+    // -------------------------------------------------
+    // BLOKKOLÁSOK LETÖLTÉSE
+    // -------------------------------------------------
+
+    @GET("api/events")
+    suspend fun getEvents(
+        @Header("Authorization")
+        authorization: String
+    ): EventsResponse
 
     // -------------------------------------------------
     // BLOKKOLÁSHOZ TARTOZÓ FOTÓ FELTÖLTÉSE

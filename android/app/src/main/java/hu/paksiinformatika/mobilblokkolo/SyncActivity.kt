@@ -151,7 +151,10 @@ class SyncActivity : AppCompatActivity() {
                         "Feltöltésre váró fotók: $pendingPhotoCount\n\n" +
                         "Legutóbbi letöltés: " +
                         "${prefs.getInt("last_sync_downloaded_new", 0)} új, " +
-                        "${prefs.getInt("last_sync_downloaded_updated", 0)} frissített\n" +
+                        "${prefs.getInt("last_sync_downloaded_updated", 0)} frissített dolgozó\n" +
+                        "Blokkolás letöltés: " +
+                        "${prefs.getInt("last_sync_downloaded_events_new", 0)} új, " +
+                        "${prefs.getInt("last_sync_downloaded_events_updated", 0)} frissített\n" +
                         "Állapot: $syncStatus"
 
             // =====================================================

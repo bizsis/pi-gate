@@ -5,9 +5,11 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import hu.paksiinformatika.mobilblokkolo.data.local.DatabaseProvider
 import hu.paksiinformatika.mobilblokkolo.data.local.EmployeeEntity
+import hu.paksiinformatika.mobilblokkolo.data.local.EventEntity
 import hu.paksiinformatika.mobilblokkolo.network.ApiClient
 import hu.paksiinformatika.mobilblokkolo.network.CompanyDto
 import hu.paksiinformatika.mobilblokkolo.network.EmployeeDto
+import hu.paksiinformatika.mobilblokkolo.network.EventDto
 import hu.paksiinformatika.mobilblokkolo.network.EmployeeSyncItem
 import hu.paksiinformatika.mobilblokkolo.network.EmployeeSyncRequest
 import hu.paksiinformatika.mobilblokkolo.network.EventBatchRequest
@@ -35,6 +37,11 @@ class SyncWorker(
         val downloadedNew: Int,
         val downloadedUpdated: Int,
         val activeEmployees: Int
+    )
+
+    private data class EventMirrorResult(
+        val downloadedNew: Int,
+        val downloadedUpdated: Int
     )
 
     override suspend fun doWork(): Result {
@@ -342,7 +349,29 @@ class SyncWorker(
             }
 
             // =====================================================
-            // 3. SZINKRON ÁLLAPOT MENTÉSE
+            // 3. SZERVER -> PDA
+            // BLOKKOLÁSOK
+            // =====================================================
+
+            val eventDownloadResponse =
+                api.getEvents(
+                    authorization =
+                        "Bearer $apiToken"
+                )
+
+            if (!eventDownloadResponse.success) {
+                return Result.retry()
+            }
+
+            val eventMirrorResult =
+                applyServerEventsToLocalDatabase(
+                    db = db,
+                    serverEvents =
+                        eventDownloadResponse.events
+                )
+
+            // =====================================================
+            // 4. SZINKRON ÁLLAPOT MENTÉSE
             // =====================================================
 
             val syncTime =
@@ -445,6 +474,18 @@ class SyncWorker(
                 .putInt(
                     "last_sync_uploaded_photos",
                     uploadedPhotos
+                )
+
+                .putInt(
+                    "last_sync_downloaded_events_new",
+                    eventMirrorResult
+                        .downloadedNew
+                )
+
+                .putInt(
+                    "last_sync_downloaded_events_updated",
+                    eventMirrorResult
+                        .downloadedUpdated
                 )
 
                 .apply()
@@ -633,6 +674,134 @@ class SyncWorker(
         )
     }
 
+    // =========================================================
+    // SZERVER OLDALI BLOKKOLÁSOK TÜKRÖZÉSE PDA-RA
+    // =========================================================
+
+    private suspend fun applyServerEventsToLocalDatabase(
+        db: hu.paksiinformatika.mobilblokkolo.data.local.AppDatabase,
+        serverEvents: List<EventDto>
+    ): EventMirrorResult {
+
+        var downloadedNew = 0
+        var downloadedUpdated = 0
+
+        for (serverEvent in serverEvents) {
+
+            val eventTimestamp =
+                parseServerTimestamp(
+                    serverEvent.event_at
+                ) ?: continue
+
+            val cardNumber =
+                serverEvent.card_number ?: ""
+
+            val existingEvent =
+                db.eventDao()
+                    .findByClientEventUuid(
+                        serverEvent.client_event_uuid
+                    )
+
+            if (existingEvent == null) {
+
+                db.eventDao()
+                    .insert(
+                        EventEntity(
+                            employeeId =
+                                serverEvent.employee_id,
+
+                            cardNumber =
+                                cardNumber,
+
+                            timestamp =
+                                eventTimestamp,
+
+                            latitude =
+                                serverEvent.latitude,
+
+                            longitude =
+                                serverEvent.longitude,
+
+                            photoPath =
+                                null,
+
+                            eventType =
+                                serverEvent.event_type,
+
+                            clientEventUuid =
+                                serverEvent.client_event_uuid,
+
+                            synced =
+                                true
+                        )
+                    )
+
+                downloadedNew++
+
+                continue
+            }
+
+            if (!existingEvent.synced) {
+                continue
+            }
+
+            val changed =
+                existingEvent.employeeId !=
+                        serverEvent.employee_id ||
+                        existingEvent.cardNumber !=
+                        cardNumber ||
+                        existingEvent.timestamp !=
+                        eventTimestamp ||
+                        existingEvent.latitude !=
+                        serverEvent.latitude ||
+                        existingEvent.longitude !=
+                        serverEvent.longitude ||
+                        existingEvent.eventType !=
+                        serverEvent.event_type
+
+            if (!changed) {
+                continue
+            }
+
+            val affectedRows =
+                db.eventDao()
+                    .updateSyncedFromServer(
+                        clientEventUuid =
+                            serverEvent.client_event_uuid,
+
+                        employeeId =
+                            serverEvent.employee_id,
+
+                        cardNumber =
+                            cardNumber,
+
+                        timestamp =
+                            eventTimestamp,
+
+                        latitude =
+                            serverEvent.latitude,
+
+                        longitude =
+                            serverEvent.longitude,
+
+                        eventType =
+                            serverEvent.event_type
+                    )
+
+            if (affectedRows > 0) {
+                downloadedUpdated++
+            }
+        }
+
+        return EventMirrorResult(
+            downloadedNew =
+                downloadedNew,
+
+            downloadedUpdated =
+                downloadedUpdated
+        )
+    }
+
     private fun parseServerTimestamp(
         value: String?
     ): Long? {
@@ -641,7 +810,7 @@ class SyncWorker(
             return null
         }
 
-        val normalized =
+        val normalizedUtc =
             value.replace(
                 Regex(
                     "\\.(\\d{3})\\d*Z$"
@@ -649,26 +818,42 @@ class SyncWorker(
                 ".$1Z"
             )
 
-        val formatter =
-            SimpleDateFormat(
+        val patterns =
+            listOf(
                 "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                Locale.US
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+                "yyyy-MM-dd'T'HH:mm:ssXXX",
+                "yyyy-MM-dd HH:mm:ss"
             )
 
-        formatter.timeZone =
-            TimeZone.getTimeZone(
-                "UTC"
-            )
+        for (pattern in patterns) {
 
-        return try {
+            try {
 
-            formatter.parse(
-                normalized
-            )?.time
+                val formatter =
+                    SimpleDateFormat(
+                        pattern,
+                        Locale.US
+                    )
 
-        } catch (e: Exception) {
+                if (pattern.endsWith("'Z'")) {
+                    formatter.timeZone =
+                        TimeZone.getTimeZone(
+                            "UTC"
+                        )
+                }
 
-            null
+                return formatter.parse(
+                    normalizedUtc
+                )?.time
+
+            } catch (e: Exception) {
+
+                continue
+            }
         }
+
+        return null
     }
 }

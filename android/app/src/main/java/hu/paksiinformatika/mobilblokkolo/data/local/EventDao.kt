@@ -17,6 +17,37 @@ interface EventDao {
     suspend fun getUnsynced(): List<EventEntity>
 
     @Query("""
+        SELECT * FROM events
+        WHERE clientEventUuid = :clientEventUuid
+        LIMIT 1
+    """)
+    suspend fun findByClientEventUuid(
+        clientEventUuid: String
+    ): EventEntity?
+
+    @Query("""
+        UPDATE events
+        SET employeeId = :employeeId,
+            cardNumber = :cardNumber,
+            timestamp = :timestamp,
+            latitude = :latitude,
+            longitude = :longitude,
+            eventType = :eventType,
+            synced = 1
+        WHERE clientEventUuid = :clientEventUuid
+        AND synced = 1
+    """)
+    suspend fun updateSyncedFromServer(
+        clientEventUuid: String,
+        employeeId: Long,
+        cardNumber: String,
+        timestamp: Long,
+        latitude: Double?,
+        longitude: Double?,
+        eventType: String
+    ): Int
+
+    @Query("""
         UPDATE events
         SET employeeId = :serverEmployeeId
         WHERE synced = 0

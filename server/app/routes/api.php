@@ -40,6 +40,11 @@ Route::middleware('device.auth')->group(function () {
         [EventController::class, 'batch']
     );
 
+    Route::get(
+        '/events',
+        [EventController::class, 'index']
+    );
+
     Route::post(
         '/events/photo',
         [EventPhotoController::class, 'upload']

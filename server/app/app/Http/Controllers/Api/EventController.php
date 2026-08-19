@@ -12,6 +12,74 @@ use Illuminate\Support\Facades\DB;
 
 class EventController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $device = $request->attributes->get('device');
+
+        $events =
+            Event::query()
+                ->where(
+                    'company_id',
+                    $device->company_id
+                )
+                ->where(
+                    'device_id',
+                    $device->id
+                )
+                ->whereNotNull(
+                    'client_event_uuid'
+                )
+                ->with([
+                    'card',
+                ])
+                ->orderByDesc(
+                    'event_at'
+                )
+                ->limit(1000)
+                ->get();
+
+        return response()->json([
+            'success' => true,
+
+            'events' =>
+                $events->map(function (Event $event) {
+
+                    return [
+                        'id' =>
+                            $event->id,
+
+                        'client_event_uuid' =>
+                            $event->client_event_uuid,
+
+                        'employee_id' =>
+                            $event->employee_id,
+
+                        'card_number' =>
+                            $event->card?->card_number,
+
+                        'event_type' =>
+                            $event->event_type,
+
+                        'event_at' =>
+                            $event->event_at,
+
+                        'latitude' =>
+                            $event->latitude !== null
+                                ? (float) $event->latitude
+                                : null,
+
+                        'longitude' =>
+                            $event->longitude !== null
+                                ? (float) $event->longitude
+                                : null,
+
+                        'updated_at' =>
+                            $event->updated_at,
+                    ];
+                }),
+        ]);
+    }
+
     public function batch(Request $request): JsonResponse
     {
         $device = $request->attributes->get('device');
