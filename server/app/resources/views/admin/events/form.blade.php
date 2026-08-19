@@ -85,19 +85,21 @@
         </div>
     </form>
 
-    <section class="panel danger">
-        <div class="panel-title">Törlés</div>
-        <div class="form-grid">
-            <div class="muted">
-                A blokkolás törlése véglegesen törli a blokkolást és a hozzá tartozó szerveren tárolt fotókat.
+    @if (auth()->user()?->isAdmin())
+        <section class="panel danger">
+            <div class="panel-title">Törlés</div>
+            <div class="form-grid">
+                <div class="muted">
+                    A blokkolás törlése véglegesen törli a blokkolást és a hozzá tartozó szerveren tárolt fotókat.
+                </div>
             </div>
-        </div>
-        <form method="post" action="{{ route('admin.events.destroy', $event) }}" onsubmit="return confirm('Biztosan véglegesen törlöd ezt a blokkolást?');">
-            @csrf
-            @method('delete')
-            <div class="form-actions">
-                <button class="action danger" type="submit">Törlés</button>
-            </div>
-        </form>
-    </section>
+            <form method="post" action="{{ route('admin.events.destroy', $event) }}" onsubmit="return confirm('Biztosan véglegesen törlöd ezt a blokkolást?');">
+                @csrf
+                @method('delete')
+                <div class="form-actions">
+                    <button class="action danger" type="submit">Törlés</button>
+                </div>
+            </form>
+        </section>
+    @endif
 @endsection

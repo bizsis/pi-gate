@@ -418,6 +418,9 @@
                 <a class="{{ request()->routeIs('admin.worktime') ? 'active' : '' }}" href="{{ route('admin.worktime') }}">Munkaidő</a>
                 <a class="{{ request()->routeIs('admin.photos') ? 'active' : '' }}" href="{{ route('admin.photos') }}">Fotók</a>
                 <a class="{{ request()->routeIs('admin.logs') ? 'active' : '' }}" href="{{ route('admin.logs') }}">Napló</a>
+                @if (auth()->user()?->isAdmin())
+                    <a class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}" href="{{ route('admin.users') }}">Felhasználók</a>
+                @endif
             </nav>
             <form method="post" action="{{ route('admin.logout') }}">
                 @csrf

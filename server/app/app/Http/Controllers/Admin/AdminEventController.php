@@ -84,6 +84,8 @@ class AdminEventController extends Controller
 
     public function destroy(Request $request, Event $event): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+
         $event->load('photos');
         $oldValues = $event->toArray();
 

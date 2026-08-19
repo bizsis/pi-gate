@@ -89,7 +89,7 @@
         </div>
     </form>
 
-    @if ($employee->exists)
+    @if ($employee->exists && auth()->user()?->isAdmin())
         <section class="panel danger">
             <div class="panel-title">Törlés</div>
             <div class="form-grid">

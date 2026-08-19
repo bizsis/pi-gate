@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminEmployeeController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\AdminLogController;
 use App\Http\Controllers\Admin\AdminPhotoController;
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminWorktimeController;
 use Illuminate\Support\Facades\Route;
 
@@ -108,4 +109,22 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/logs', [AdminLogController::class, 'index'])
         ->name('logs');
+
+    Route::get('/users', [AdminUserController::class, 'index'])
+        ->name('users');
+
+    Route::get('/users/create', [AdminUserController::class, 'create'])
+        ->name('users.create');
+
+    Route::post('/users', [AdminUserController::class, 'store'])
+        ->name('users.store');
+
+    Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])
+        ->name('users.edit');
+
+    Route::put('/users/{user}', [AdminUserController::class, 'update'])
+        ->name('users.update');
+
+    Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])
+        ->name('users.destroy');
 });

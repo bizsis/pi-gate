@@ -116,6 +116,8 @@ class AdminEmployeeController extends Controller
 
     public function destroy(Request $request, Employee $employee): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+
         $oldValues = $employee
             ->load('cards')
             ->toArray();

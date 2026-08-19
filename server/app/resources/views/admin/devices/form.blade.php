@@ -53,19 +53,21 @@
         </div>
     </form>
 
-    <section class="panel danger">
-        <div class="panel-title">Törlés</div>
-        <div class="form-grid">
-            <div class="muted">
-                Az eszköz törlése inaktiválja az eszközt. A korábbi blokkolások és naplók megmaradnak.
+    @if (auth()->user()?->isAdmin())
+        <section class="panel danger">
+            <div class="panel-title">Törlés</div>
+            <div class="form-grid">
+                <div class="muted">
+                    Az eszköz törlése inaktiválja az eszközt. A korábbi blokkolások és naplók megmaradnak.
+                </div>
             </div>
-        </div>
-        <form method="post" action="{{ route('admin.devices.destroy', $device) }}" onsubmit="return confirm('Biztosan törlöd/inaktiválod ezt az eszközt?');">
-            @csrf
-            @method('delete')
-            <div class="form-actions">
-                <button class="action danger" type="submit">Törlés</button>
-            </div>
-        </form>
-    </section>
+            <form method="post" action="{{ route('admin.devices.destroy', $device) }}" onsubmit="return confirm('Biztosan törlöd/inaktiválod ezt az eszközt?');">
+                @csrf
+                @method('delete')
+                <div class="form-actions">
+                    <button class="action danger" type="submit">Törlés</button>
+                </div>
+            </form>
+        </section>
+    @endif
 @endsection

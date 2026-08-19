@@ -54,6 +54,8 @@ class AdminCompanyController extends Controller
 
     public function destroy(Request $request, Company $company): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+
         $oldValues = $company
             ->load(['employees.cards', 'devices'])
             ->toArray();

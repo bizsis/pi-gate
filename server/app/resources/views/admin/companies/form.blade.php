@@ -63,7 +63,7 @@
         </div>
     </form>
 
-    @if ($company->exists)
+    @if ($company->exists && auth()->user()?->isAdmin())
         <section class="panel danger">
             <div class="panel-title">Törlés</div>
             <div class="form-grid">

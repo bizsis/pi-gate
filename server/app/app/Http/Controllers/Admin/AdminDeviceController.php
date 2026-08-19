@@ -43,6 +43,8 @@ class AdminDeviceController extends Controller
 
     public function destroy(Request $request, Device $device): RedirectResponse
     {
+        abort_unless($request->user()?->isAdmin(), 403);
+
         $oldValues = $device->toArray();
 
         $device->update([
