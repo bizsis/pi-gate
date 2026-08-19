@@ -83,7 +83,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:text="Vevő cég neve"
+            android:text="N+T Kft."
             android:textColor="#111827"
             android:textSize="17sp"
             android:textStyle="bold" />
@@ -450,10 +450,9 @@
             android:layout_width="match_parent"
             android:layout_height="54dp"
             android:gravity="center_vertical"
-            android:text="Kiosk feloldás"
+            android:text="Kilépés"
             android:textColor="#A83D3D"
-            android:textSize="17sp"
-            android:visibility="gone" />
+            android:textSize="17sp" />
 
         <!-- NÉVJEGY -->
         <TextView

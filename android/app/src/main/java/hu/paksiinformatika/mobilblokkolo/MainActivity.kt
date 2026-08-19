@@ -199,18 +199,15 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         btnHamburger.setOnClickListener {
 
-            if (hamburgerMenu.visibility == View.VISIBLE) {
-                hamburgerMenu.visibility =
-                    View.GONE
-            } else {
-                requestAdminPassword(
-                    "Admin menü",
-                    allowWhenNoPassword = true
+            hamburgerMenu.visibility =
+                if (
+                    hamburgerMenu.visibility ==
+                    View.VISIBLE
                 ) {
-                    hamburgerMenu.visibility =
-                        View.VISIBLE
+                    View.GONE
+                } else {
+                    View.VISIBLE
                 }
-            }
         }
 
         // =====================================================
@@ -312,15 +309,20 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         menuServer.setOnClickListener {
 
-            hamburgerMenu.visibility =
-                View.GONE
+            requestAdminPassword(
+                "Szerver kapcsolat",
+                allowWhenNoPassword = true
+            ) {
+                hamburgerMenu.visibility =
+                    View.GONE
 
-            startActivity(
-                Intent(
-                    this,
-                    ServerConnectionActivity::class.java
+                startActivity(
+                    Intent(
+                        this,
+                        ServerConnectionActivity::class.java
+                    )
                 )
-            )
+            }
         }
 
         // =====================================================
@@ -372,29 +374,11 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             )
 
         menuExitKiosk.visibility =
-            if (KioskManager.isDeviceOwner(this)) {
-                View.VISIBLE
-            } else {
-                View.GONE
-            }
+            View.VISIBLE
 
         menuExitKiosk.setOnClickListener {
 
-            requestAdminPassword(
-                "Kiosk feloldás",
-                allowWhenNoPassword = false
-            ) {
-                hamburgerMenu.visibility =
-                    View.GONE
-
-                KioskManager.stopKiosk(this)
-
-                Toast.makeText(
-                    this,
-                    "Kiosk mód feloldva.",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+            exitProgramWithPassword()
         }
 
         // =====================================================
@@ -573,17 +557,18 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onBackPressed() {
-        if (KioskManager.isDeviceOwner(this)) {
-            Toast.makeText(
-                this,
-                "A kilépéshez admin jelszó szükséges.",
-                Toast.LENGTH_SHORT
-            ).show()
+        exitProgramWithPassword()
+    }
 
-            return
+    private fun exitProgramWithPassword() {
+        requestAdminPassword(
+            "Kilépés",
+            allowWhenNoPassword = true
+        ) {
+            KioskManager.stopKiosk(this)
+
+            finishAndRemoveTask()
         }
-
-        super.onBackPressed()
     }
 
     private fun requestAdminPassword(
