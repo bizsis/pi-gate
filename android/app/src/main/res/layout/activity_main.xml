@@ -424,6 +424,16 @@
             android:textColor="#111827"
             android:textSize="17sp" />
 
+        <!-- WI-FI -->
+        <TextView
+            android:id="@+id/menuWifi"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:gravity="center_vertical"
+            android:text="Wi-Fi beállítás"
+            android:textColor="#111827"
+            android:textSize="17sp" />
+
         <!-- ADMIN -->
         <TextView
             android:id="@+id/menuAdmin"
@@ -433,6 +443,17 @@
             android:text="Admin beállítások"
             android:textColor="#111827"
             android:textSize="17sp" />
+
+        <!-- KIOSK KILÉPÉS -->
+        <TextView
+            android:id="@+id/menuExitKiosk"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:gravity="center_vertical"
+            android:text="Kiosk feloldás"
+            android:textColor="#A83D3D"
+            android:textSize="17sp"
+            android:visibility="gone" />
 
         <!-- NÉVJEGY -->
         <TextView

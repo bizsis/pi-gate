@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MobilBlokkoló</string>
+    <string name="device_admin_description">PI Gate céleszköz felügyelet, kiosk mód és automatikus indulás.</string>
 </resources>

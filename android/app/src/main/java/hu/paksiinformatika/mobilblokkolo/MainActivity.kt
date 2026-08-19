@@ -1,6 +1,7 @@
 package hu.paksiinformatika.mobilblokkolo
 
 import android.Manifest
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -9,6 +10,7 @@ import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Bundle
 import android.view.View
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -50,6 +52,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        KioskManager.configureDeviceOwnerPolicies(this)
 
         nfcAdapter =
             NfcAdapter.getDefaultAdapter(this)
@@ -195,15 +199,18 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         btnHamburger.setOnClickListener {
 
-            hamburgerMenu.visibility =
-                if (
-                    hamburgerMenu.visibility ==
-                    View.VISIBLE
-                ) {
+            if (hamburgerMenu.visibility == View.VISIBLE) {
+                hamburgerMenu.visibility =
                     View.GONE
-                } else {
-                    View.VISIBLE
+            } else {
+                requestAdminPassword(
+                    "Admin menü",
+                    allowWhenNoPassword = true
+                ) {
+                    hamburgerMenu.visibility =
+                        View.VISIBLE
                 }
+            }
         }
 
         // =====================================================
@@ -317,6 +324,23 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         }
 
         // =====================================================
+        // WI-FI BEÁLLÍTÁS
+        // =====================================================
+
+        val menuWifi =
+            findViewById<TextView>(
+                R.id.menuWifi
+            )
+
+        menuWifi.setOnClickListener {
+
+            hamburgerMenu.visibility =
+                View.GONE
+
+            KioskManager.openWifiSettings(this)
+        }
+
+        // =====================================================
         // ADMIN BEÁLLÍTÁSOK
         // =====================================================
 
@@ -336,6 +360,41 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                     AdminSettingsActivity::class.java
                 )
             )
+        }
+
+        // =====================================================
+        // KIOSK FELOLDÁS
+        // =====================================================
+
+        val menuExitKiosk =
+            findViewById<TextView>(
+                R.id.menuExitKiosk
+            )
+
+        menuExitKiosk.visibility =
+            if (KioskManager.isDeviceOwner(this)) {
+                View.VISIBLE
+            } else {
+                View.GONE
+            }
+
+        menuExitKiosk.setOnClickListener {
+
+            requestAdminPassword(
+                "Kiosk feloldás",
+                allowWhenNoPassword = false
+            ) {
+                hamburgerMenu.visibility =
+                    View.GONE
+
+                KioskManager.stopKiosk(this)
+
+                Toast.makeText(
+                    this,
+                    "Kiosk mód feloldva.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
 
         // =====================================================
@@ -403,6 +462,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         // =====================================================
 
         startCamera()
+
+        KioskManager.startKioskIfOwner(this)
     }
 
     // =========================================================
@@ -500,6 +561,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         loadDefaultDirection()
 
+        KioskManager.startKioskIfOwner(this)
+
         nfcAdapter?.enableReaderMode(
             this,
             this,
@@ -507,6 +570,82 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                     NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
             null
         )
+    }
+
+    override fun onBackPressed() {
+        if (KioskManager.isDeviceOwner(this)) {
+            Toast.makeText(
+                this,
+                "A kilépéshez admin jelszó szükséges.",
+                Toast.LENGTH_SHORT
+            ).show()
+
+            return
+        }
+
+        super.onBackPressed()
+    }
+
+    private fun requestAdminPassword(
+        title: String,
+        allowWhenNoPassword: Boolean,
+        onSuccess: () -> Unit
+    ) {
+
+        if (!AdminAuth.hasPassword(this)) {
+            if (allowWhenNoPassword) {
+                Toast.makeText(
+                    this,
+                    "Még nincs admin jelszó. Első beállításhoz az admin menü megnyílt.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                onSuccess()
+
+                return
+            }
+
+            Toast.makeText(
+                this,
+                "Előbb állíts be admin jelszót a szerverkapcsolatnál.",
+                Toast.LENGTH_LONG
+            ).show()
+
+            return
+        }
+
+        val input =
+            EditText(this).apply {
+                hint =
+                    "Admin jelszó"
+                inputType =
+                    android.text.InputType.TYPE_CLASS_TEXT or
+                            android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+            }
+
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(input)
+            .setNegativeButton("Mégse", null)
+            .setPositiveButton("Megnyitás") { _, _ ->
+
+                val password =
+                    input.text
+                        ?.toString()
+                        ?.trim()
+                        ?: ""
+
+                if (AdminAuth.verify(this, password)) {
+                    onSuccess()
+                } else {
+                    Toast.makeText(
+                        this,
+                        "Hibás admin jelszó.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+            .show()
     }
 
     override fun onPause() {
