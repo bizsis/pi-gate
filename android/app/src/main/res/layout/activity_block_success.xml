@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F6F8FB"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/tvSuccessTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="✓ SIKERES BLOKKOLÁS"
+        android:textColor="#0B8F2A"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/tvSuccessDirection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="ÉRKEZÉS"
+        android:textColor="#0B3768"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/lblSuccessEmployee"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:text="Név:"
+        android:textColor="#6B7280"
+        android:textSize="17sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSuccessTitle" />
+
+    <TextView
+        android:id="@+id/tvSuccessEmployee"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="-"
+        android:textColor="#111827"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/lblSuccessEmployee"
+        app:layout_constraintTop_toTopOf="@id/lblSuccessEmployee" />
+
+    <TextView
+        android:id="@+id/lblSuccessTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="Idő:"
+        android:textColor="#6B7280"
+        android:textSize="17sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSuccessEmployee" />
+
+    <TextView
+        android:id="@+id/tvSuccessTime"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="-"
+        android:textColor="#111827"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/lblSuccessTime"
+        app:layout_constraintTop_toTopOf="@id/lblSuccessTime" />
+
+    <TextView
+        android:id="@+id/lblSuccessGps"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="22dp"
+        android:text="GPS:"
+        android:textColor="#6B7280"
+        android:textSize="17sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSuccessTime" />
+
+    <TextView
+        android:id="@+id/tvSuccessGps"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:text="-"
+        android:textColor="#111827"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/lblSuccessGps"
+        app:layout_constraintTop_toTopOf="@id/lblSuccessGps" />
+
+    <ImageView
+        android:id="@+id/imgSuccessPhoto"
+        android:layout_width="260dp"
+        android:layout_height="320dp"
+        android:layout_marginTop="28dp"
+        android:background="#E5E7EB"
+        android:contentDescription="Blokkolási fotó"
+        android:scaleType="centerCrop"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvSuccessGps" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

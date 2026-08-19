@@ -1,0 +1,43 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+local.properties
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+*.bak
+*.backup
+*.before
+*.before-*
+*.old
+
+# Laravel
+server/app/vendor/
+server/app/node_modules/
+server/app/public/build/
+server/app/bootstrap/cache/*.php
+server/app/storage/logs/*
+server/app/storage/framework/cache/*
+server/app/storage/framework/sessions/*
+server/app/storage/framework/views/*
+server/app/database/*.sqlite
+server/backups/
+
+# Android / Gradle
+android/.gradle/
+android/.idea/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+android/**/*.iml
+android/captures/
+android/.externalNativeBuild/
+android/.cxx/
+
+# OS / editor
+.DS_Store
+Thumbs.db
