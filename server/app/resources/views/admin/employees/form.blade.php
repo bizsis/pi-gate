@@ -88,4 +88,22 @@
             <button class="action" type="submit">Mentés</button>
         </div>
     </form>
+
+    @if ($employee->exists)
+        <section class="panel danger">
+            <div class="panel-title">Törlés</div>
+            <div class="form-grid">
+                <div class="muted">
+                    A dolgozó törlése inaktiválja a dolgozót és a kártyáit. A korábbi blokkolások megmaradnak.
+                </div>
+            </div>
+            <form method="post" action="{{ route('admin.employees.destroy', $employee) }}" onsubmit="return confirm('Biztosan törlöd/inaktiválod ezt a dolgozót?');">
+                @csrf
+                @method('delete')
+                <div class="form-actions">
+                    <button class="action danger" type="submit">Törlés</button>
+                </div>
+            </form>
+        </section>
+    @endif
 @endsection

@@ -48,6 +48,15 @@ interface EventDao {
     ): Int
 
     @Query("""
+        DELETE FROM events
+        WHERE clientEventUuid = :clientEventUuid
+        AND synced = 1
+    """)
+    suspend fun deleteSyncedByClientEventUuid(
+        clientEventUuid: String
+    ): Int
+
+    @Query("""
         UPDATE events
         SET employeeId = :serverEmployeeId
         WHERE synced = 0

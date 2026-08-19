@@ -10,6 +10,7 @@ use App\Models\Event;
 use App\Support\AdminAudit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -79,5 +80,27 @@ class AdminEventController extends Controller
         return redirect()
             ->route('admin.events')
             ->with('status', 'A blokkolás adatai frissültek.');
+    }
+
+    public function destroy(Request $request, Event $event): RedirectResponse
+    {
+        $event->load('photos');
+        $oldValues = $event->toArray();
+
+        foreach ($event->photos as $photo) {
+            if (Storage::disk('local')->exists($photo->path)) {
+                Storage::disk('local')->delete($photo->path);
+            }
+
+            $photo->delete();
+        }
+
+        $event->delete();
+
+        AdminAudit::log($request, 'event.deleted', $event, $oldValues, null);
+
+        return redirect()
+            ->route('admin.events')
+            ->with('status', 'A blokkolás törölve lett.');
     }
 }

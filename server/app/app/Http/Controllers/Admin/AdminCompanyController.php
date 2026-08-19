@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Support\AdminAudit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -49,6 +50,26 @@ class AdminCompanyController extends Controller
         return redirect()
             ->route('admin.companies')
             ->with('status', 'A cég adatai frissültek.');
+    }
+
+    public function destroy(Request $request, Company $company): RedirectResponse
+    {
+        $oldValues = $company
+            ->load(['employees.cards', 'devices'])
+            ->toArray();
+
+        DB::transaction(function () use ($company): void {
+            $company->employees()->update(['active' => false]);
+            $company->cards()->update(['active' => false]);
+            $company->devices()->update(['active' => false]);
+            $company->update(['active' => false]);
+        });
+
+        AdminAudit::log($request, 'company.deleted', $company, $oldValues, $company->fresh()->toArray());
+
+        return redirect()
+            ->route('admin.companies')
+            ->with('status', 'A cég inaktiválva lett.');
     }
 
     private function validatedData(Request $request, ?Company $company = null): array

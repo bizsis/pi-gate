@@ -62,4 +62,22 @@
             <button class="action" type="submit">Mentés</button>
         </div>
     </form>
+
+    @if ($company->exists)
+        <section class="panel danger">
+            <div class="panel-title">Törlés</div>
+            <div class="form-grid">
+                <div class="muted">
+                    A cég törlése inaktiválja a céget, a dolgozóit, kártyáit és eszközeit. A korábbi blokkolások megmaradnak.
+                </div>
+            </div>
+            <form method="post" action="{{ route('admin.companies.destroy', $company) }}" onsubmit="return confirm('Biztosan törlöd/inaktiválod ezt a céget?');">
+                @csrf
+                @method('delete')
+                <div class="form-actions">
+                    <button class="action danger" type="submit">Törlés</button>
+                </div>
+            </form>
+        </section>
+    @endif
 @endsection

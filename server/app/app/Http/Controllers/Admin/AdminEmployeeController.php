@@ -114,6 +114,24 @@ class AdminEmployeeController extends Controller
             ->with('status', 'A dolgozó adatai frissültek.');
     }
 
+    public function destroy(Request $request, Employee $employee): RedirectResponse
+    {
+        $oldValues = $employee
+            ->load('cards')
+            ->toArray();
+
+        DB::transaction(function () use ($employee): void {
+            $employee->cards()->update(['active' => false]);
+            $employee->update(['active' => false]);
+        });
+
+        AdminAudit::log($request, 'employee.deleted', $employee, $oldValues, $employee->fresh()->load('cards')->toArray());
+
+        return redirect()
+            ->route('admin.employees')
+            ->with('status', 'A dolgozó és a kártyái inaktiválva lettek.');
+    }
+
     private function validatedData(Request $request, ?Employee $employee = null): array
     {
         $companyId = $request->integer('company_id');

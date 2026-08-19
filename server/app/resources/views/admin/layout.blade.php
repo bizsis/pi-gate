@@ -116,6 +116,10 @@
             box-shadow: none;
             color: var(--primary-dark);
         }
+        .action.danger {
+            background: linear-gradient(180deg, #c64b4b, var(--bad));
+            box-shadow: 0 8px 18px rgba(168, 61, 61, 0.20);
+        }
         .wrap {
             margin: 0 auto;
             max-width: 1280px;
@@ -162,6 +166,13 @@
             font-size: 13px;
         }
         .panel { margin-bottom: 18px; overflow: hidden; }
+        .panel.danger {
+            border-color: #e8b4b4;
+        }
+        .panel.danger .panel-title {
+            background: #fff6f6;
+            color: var(--bad);
+        }
         .panel-title {
             background: #fbfdff;
             border-bottom: 1px solid var(--line);

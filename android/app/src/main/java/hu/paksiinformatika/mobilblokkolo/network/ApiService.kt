@@ -175,7 +175,8 @@ data class EventDto(
     val event_at: String,
     val latitude: Double?,
     val longitude: Double?,
-    val updated_at: String?
+    val updated_at: String?,
+    val deleted_at: String?
 )
 
 // =====================================================

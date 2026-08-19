@@ -18,6 +18,7 @@ class EventController extends Controller
 
         $events =
             Event::query()
+                ->withTrashed()
                 ->where(
                     'company_id',
                     $device->company_id
@@ -75,6 +76,9 @@ class EventController extends Controller
 
                         'updated_at' =>
                             $event->updated_at,
+
+                        'deleted_at' =>
+                            $event->deleted_at,
                     ];
                 }),
         ]);

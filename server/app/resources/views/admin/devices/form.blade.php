@@ -52,4 +52,20 @@
             <button class="action" type="submit">Mentés</button>
         </div>
     </form>
+
+    <section class="panel danger">
+        <div class="panel-title">Törlés</div>
+        <div class="form-grid">
+            <div class="muted">
+                Az eszköz törlése inaktiválja az eszközt. A korábbi blokkolások és naplók megmaradnak.
+            </div>
+        </div>
+        <form method="post" action="{{ route('admin.devices.destroy', $device) }}" onsubmit="return confirm('Biztosan törlöd/inaktiválod ezt az eszközt?');">
+            @csrf
+            @method('delete')
+            <div class="form-actions">
+                <button class="action danger" type="submit">Törlés</button>
+            </div>
+        </form>
+    </section>
 @endsection

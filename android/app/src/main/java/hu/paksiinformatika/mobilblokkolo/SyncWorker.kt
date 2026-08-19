@@ -688,6 +688,21 @@ class SyncWorker(
 
         for (serverEvent in serverEvents) {
 
+            if (serverEvent.deleted_at != null) {
+
+                val deletedRows =
+                    db.eventDao()
+                        .deleteSyncedByClientEventUuid(
+                            serverEvent.client_event_uuid
+                        )
+
+                if (deletedRows > 0) {
+                    downloadedUpdated++
+                }
+
+                continue
+            }
+
             val eventTimestamp =
                 parseServerTimestamp(
                     serverEvent.event_at

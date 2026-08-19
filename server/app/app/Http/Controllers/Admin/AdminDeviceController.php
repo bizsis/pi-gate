@@ -40,4 +40,19 @@ class AdminDeviceController extends Controller
             ->route('admin.devices')
             ->with('status', 'Az eszköz adatai frissültek.');
     }
+
+    public function destroy(Request $request, Device $device): RedirectResponse
+    {
+        $oldValues = $device->toArray();
+
+        $device->update([
+            'active' => false,
+        ]);
+
+        AdminAudit::log($request, 'device.deleted', $device, $oldValues, $device->fresh()->toArray());
+
+        return redirect()
+            ->route('admin.devices')
+            ->with('status', 'Az eszköz inaktiválva lett.');
+    }
 }

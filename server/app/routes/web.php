@@ -49,6 +49,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/companies/{company}', [AdminCompanyController::class, 'update'])
         ->name('companies.update');
 
+    Route::delete('/companies/{company}', [AdminCompanyController::class, 'destroy'])
+        ->name('companies.destroy');
+
     Route::get('/employees', [AdminDashboardController::class, 'employees'])
         ->name('employees');
 
@@ -64,6 +67,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/employees/{employee}', [AdminEmployeeController::class, 'update'])
         ->name('employees.update');
 
+    Route::delete('/employees/{employee}', [AdminEmployeeController::class, 'destroy'])
+        ->name('employees.destroy');
+
     Route::get('/devices', [AdminDashboardController::class, 'devices'])
         ->name('devices');
 
@@ -73,6 +79,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::put('/devices/{device}', [AdminDeviceController::class, 'update'])
         ->name('devices.update');
 
+    Route::delete('/devices/{device}', [AdminDeviceController::class, 'destroy'])
+        ->name('devices.destroy');
+
     Route::get('/events', [AdminDashboardController::class, 'events'])
         ->name('events');
 
@@ -81,6 +90,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::put('/events/{event}', [AdminEventController::class, 'update'])
         ->name('events.update');
+
+    Route::delete('/events/{event}', [AdminEventController::class, 'destroy'])
+        ->name('events.destroy');
 
     Route::get('/worktime', [AdminWorktimeController::class, 'index'])
         ->name('worktime');
