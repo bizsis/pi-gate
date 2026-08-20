@@ -13,8 +13,8 @@ android {
         applicationId = "hu.paksiinformatika.mobilblokkolo"
         minSdk = 24
         targetSdk = 37
-        versionCode = 2
-        versionName = "1.2.147"
+        versionCode = 3
+        versionName = "1.2.148"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -61,3 +61,4 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }
+
