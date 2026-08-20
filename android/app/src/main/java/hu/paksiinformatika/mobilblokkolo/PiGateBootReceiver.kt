@@ -11,6 +11,10 @@ class PiGateBootReceiver : BroadcastReceiver() {
             return
         }
 
+        SyncManager.initializeAutoSync(
+            context
+        )
+
         val launchIntent =
             Intent(context, MainActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -20,4 +24,3 @@ class PiGateBootReceiver : BroadcastReceiver() {
         context.startActivity(launchIntent)
     }
 }
-

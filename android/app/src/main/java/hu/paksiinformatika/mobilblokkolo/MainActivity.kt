@@ -87,6 +87,10 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         bindStatusBar()
         bindAppVersion()
 
+        SyncManager.initializeAutoSync(
+            this
+        )
+
         KioskManager.configureDeviceOwnerPolicies(this)
 
         nfcAdapter =
