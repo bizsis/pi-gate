@@ -85,6 +85,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         applyFullscreenMode()
 
         bindStatusBar()
+        bindAppVersion()
 
         KioskManager.configureDeviceOwnerPolicies(this)
 
@@ -498,6 +499,14 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     // =========================================================
     // FELSŐ STÁTUSZSÁV
     // =========================================================
+
+    private fun bindAppVersion() {
+
+        findViewById<TextView>(
+            R.id.footerVersion
+        ).text =
+            "Verzió: v${BuildConfig.VERSION_NAME}"
+    }
 
     private fun bindStatusBar() {
 
