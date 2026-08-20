@@ -565,7 +565,16 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             "Kilépés",
             allowWhenNoPassword = true
         ) {
-            KioskManager.stopKiosk(this)
+            KioskManager.unlockForAdminExit(this)
+
+            val homeIntent =
+                Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+
+            startActivity(homeIntent)
 
             finishAndRemoveTask()
         }

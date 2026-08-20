@@ -108,6 +108,21 @@ object KioskManager {
         }
     }
 
+    fun unlockForAdminExit(activity: Activity) {
+        stopKiosk(activity)
+
+        if (isDeviceOwner(activity)) {
+            val dpm =
+                activity.getSystemService(Context.DEVICE_POLICY_SERVICE)
+                        as DevicePolicyManager
+
+            dpm.clearPackagePersistentPreferredActivities(
+                adminComponent(activity),
+                activity.packageName
+            )
+        }
+    }
+
     fun openWifiSettings(activity: Activity) {
         val intent =
             Intent(Settings.ACTION_WIFI_SETTINGS).apply {
@@ -117,4 +132,3 @@ object KioskManager {
         activity.startActivity(intent)
     }
 }
-
