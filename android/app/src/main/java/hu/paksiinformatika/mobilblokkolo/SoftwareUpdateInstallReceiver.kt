@@ -39,6 +39,33 @@ class SoftwareUpdateInstallReceiver : BroadcastReceiver() {
                     PackageInstaller.EXTRA_STATUS_MESSAGE
                 ) ?: ""
             )
+            .putBoolean(
+                "software_update_available",
+                status != PackageInstaller.STATUS_SUCCESS
+            )
             .apply()
+
+        if (status == PackageInstaller.STATUS_SUCCESS) {
+
+            val launchIntent =
+                context.packageManager
+                    .getLaunchIntentForPackage(
+                        context.packageName
+                    )
+                    ?: Intent(
+                        context,
+                        MainActivity::class.java
+                    )
+
+            launchIntent
+                .addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP
+                )
+
+            context.startActivity(
+                launchIntent
+            )
+        }
     }
 }

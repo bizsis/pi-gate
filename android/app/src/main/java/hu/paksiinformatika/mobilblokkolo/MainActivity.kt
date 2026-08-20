@@ -593,6 +593,32 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 false
             )
 
+        val updateVersionCode =
+            prefs.getInt(
+                "software_update_version_code",
+                0
+            )
+
+        if (
+            updateAvailable &&
+            updateVersionCode > 0 &&
+            updateVersionCode <= BuildConfig.VERSION_CODE
+        ) {
+
+            prefs.edit()
+                .putBoolean(
+                    "software_update_available",
+                    false
+                )
+                .apply()
+
+            imgUpdateStatus.setImageResource(
+                R.drawable.ic_update_ok
+            )
+
+            return
+        }
+
         imgUpdateStatus.setImageResource(
             if (updateAvailable) {
                 R.drawable.ic_update_available
