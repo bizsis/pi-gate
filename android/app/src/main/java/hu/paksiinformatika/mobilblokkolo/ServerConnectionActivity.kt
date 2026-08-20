@@ -317,7 +317,7 @@ class ServerConnectionActivity : AppCompatActivity() {
                             device_uid = getPiGateDeviceId(),
                             name = "PI Gate PDA",
                             platform = "android",
-                            app_version = "v1.2.146"
+                            app_version = "v${BuildConfig.VERSION_NAME}"
                         )
                     )
 

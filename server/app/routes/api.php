@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\EmployeeController;
 use App\Http\Controllers\Api\EmployeeSyncController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventPhotoController;
+use App\Http\Controllers\Api\SoftwareUpdateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -49,4 +50,14 @@ Route::middleware('device.auth')->group(function () {
         '/events/photo',
         [EventPhotoController::class, 'upload']
     );
+
+    Route::get(
+        '/software-update/current',
+        [SoftwareUpdateController::class, 'current']
+    );
+
+    Route::get(
+        '/software-update/download',
+        [SoftwareUpdateController::class, 'download']
+    )->name('api.software-update.download');
 });

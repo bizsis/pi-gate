@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\AdminEmployeeController;
 use App\Http\Controllers\Admin\AdminEventController;
 use App\Http\Controllers\Admin\AdminLogController;
 use App\Http\Controllers\Admin\AdminPhotoController;
+use App\Http\Controllers\Admin\AdminSoftwareUpdateController;
 use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Admin\AdminWorktimeController;
 use Illuminate\Support\Facades\Route;
@@ -112,6 +113,12 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::get('/logs', [AdminLogController::class, 'index'])
         ->name('logs');
+
+    Route::get('/software-updates', [AdminSoftwareUpdateController::class, 'index'])
+        ->name('software-updates');
+
+    Route::post('/software-updates', [AdminSoftwareUpdateController::class, 'store'])
+        ->name('software-updates.store');
 
     Route::get('/users', [AdminUserController::class, 'index'])
         ->name('users');

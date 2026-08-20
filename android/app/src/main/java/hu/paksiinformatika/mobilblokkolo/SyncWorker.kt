@@ -490,6 +490,26 @@ class SyncWorker(
 
                 .apply()
 
+            try {
+                SoftwareUpdateManager.checkDownloadAndInstall(
+                    context =
+                        applicationContext,
+
+                    api =
+                        api,
+
+                    apiToken =
+                        apiToken
+                )
+            } catch (e: Exception) {
+                prefs.edit()
+                    .putString(
+                        "software_update_last_message",
+                        e.message ?: ""
+                    )
+                    .apply()
+            }
+
             Result.success()
 
         } catch (e: HttpException) {

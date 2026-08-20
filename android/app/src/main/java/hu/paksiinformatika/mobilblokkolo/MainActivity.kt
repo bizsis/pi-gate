@@ -567,6 +567,30 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         updateNetworkStatus()
         updatePendingSyncStatus()
+        updateSoftwareUpdateStatus()
+    }
+
+    private fun updateSoftwareUpdateStatus() {
+
+        val prefs =
+            getSharedPreferences(
+                "pi_gate_settings",
+                MODE_PRIVATE
+            )
+
+        val updateAvailable =
+            prefs.getBoolean(
+                "software_update_available",
+                false
+            )
+
+        imgUpdateStatus.setImageResource(
+            if (updateAvailable) {
+                R.drawable.ic_update_available
+            } else {
+                R.drawable.ic_update_ok
+            }
+        )
     }
 
     private fun updateNetworkStatus() {

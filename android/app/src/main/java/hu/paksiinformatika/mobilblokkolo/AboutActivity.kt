@@ -25,7 +25,7 @@ class AboutActivity : AppCompatActivity() {
             finish()
         }
 
-        tvVersion.text = "Verzió: v1.2.146"
+        tvVersion.text = "Verzió: v${BuildConfig.VERSION_NAME}"
 
         val androidId =
             Settings.Secure.getString(

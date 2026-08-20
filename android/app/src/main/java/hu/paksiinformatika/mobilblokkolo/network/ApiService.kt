@@ -2,12 +2,15 @@ package hu.paksiinformatika.mobilblokkolo.network
 
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Query
+import retrofit2.http.Streaming
 
 // =====================================================
 // DOLGOZÓK LETÖLTÉSE
@@ -199,6 +202,26 @@ data class EventPhotoDto(
 )
 
 // =====================================================
+// PDA SZOFTVERFRISSÍTÉS
+// =====================================================
+
+data class SoftwareUpdateCurrentResponse(
+    val success: Boolean,
+    val update_available: Boolean,
+    val update: SoftwareUpdateDto?
+)
+
+data class SoftwareUpdateDto(
+    val version_code: Int,
+    val version_name: String,
+    val download_url: String?,
+    val sha256: String,
+    val file_size: Long,
+    val mandatory: Boolean,
+    val notes: String?
+)
+
+// =====================================================
 // API
 // =====================================================
 
@@ -275,4 +298,24 @@ interface ApiService {
         @Part
         photo: MultipartBody.Part
     ): EventPhotoUploadResponse
+
+    // -------------------------------------------------
+    // PDA SZOFTVERFRISSÍTÉS
+    // -------------------------------------------------
+
+    @GET("api/software-update/current")
+    suspend fun getSoftwareUpdate(
+        @Header("Authorization")
+        authorization: String,
+
+        @Query("version_code")
+        versionCode: Int
+    ): SoftwareUpdateCurrentResponse
+
+    @Streaming
+    @GET("api/software-update/download")
+    suspend fun downloadSoftwareUpdate(
+        @Header("Authorization")
+        authorization: String
+    ): ResponseBody
 }
