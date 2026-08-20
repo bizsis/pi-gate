@@ -6,13 +6,16 @@ import androidx.room3.RoomDatabase
 @Database(
     entities = [
         EmployeeEntity::class,
-        EventEntity::class
+        EventEntity::class,
+        WorkAreaEntity::class
     ],
-    version = 4
+    version = 5
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun employeeDao(): EmployeeDao
 
     abstract fun eventDao(): EventDao
+
+    abstract fun workAreaDao(): WorkAreaDao
 }

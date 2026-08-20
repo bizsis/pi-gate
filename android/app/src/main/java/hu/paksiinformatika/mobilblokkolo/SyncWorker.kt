@@ -6,6 +6,7 @@ import androidx.work.WorkerParameters
 import hu.paksiinformatika.mobilblokkolo.data.local.DatabaseProvider
 import hu.paksiinformatika.mobilblokkolo.data.local.EmployeeEntity
 import hu.paksiinformatika.mobilblokkolo.data.local.EventEntity
+import hu.paksiinformatika.mobilblokkolo.data.local.WorkAreaEntity
 import hu.paksiinformatika.mobilblokkolo.network.ApiClient
 import hu.paksiinformatika.mobilblokkolo.network.CompanyDto
 import hu.paksiinformatika.mobilblokkolo.network.EmployeeDto
@@ -14,6 +15,7 @@ import hu.paksiinformatika.mobilblokkolo.network.EmployeeSyncItem
 import hu.paksiinformatika.mobilblokkolo.network.EmployeeSyncRequest
 import hu.paksiinformatika.mobilblokkolo.network.EventBatchRequest
 import hu.paksiinformatika.mobilblokkolo.network.EventUploadItem
+import hu.paksiinformatika.mobilblokkolo.network.WorkAreaDto
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -172,7 +174,29 @@ class SyncWorker(
                 )
 
             // =====================================================
-            // 2. PDA -> SZERVER
+            // 2. SZERVER -> PDA
+            // MUNKATERÜLETEK
+            // =====================================================
+
+            val workAreasResponse =
+                api.getWorkAreas(
+                    authorization =
+                        "Bearer $apiToken"
+                )
+
+            if (!workAreasResponse.success) {
+                return Result.retry()
+            }
+
+            val downloadedWorkAreas =
+                applyServerWorkAreasToLocalDatabase(
+                    db = db,
+                    serverWorkAreas =
+                        workAreasResponse.work_areas
+                )
+
+            // =====================================================
+            // 3. PDA -> SZERVER
             // BLOKKOLÁSOK
             // =====================================================
 
@@ -349,7 +373,7 @@ class SyncWorker(
             }
 
             // =====================================================
-            // 3. SZERVER -> PDA
+            // 4. SZERVER -> PDA
             // BLOKKOLÁSOK
             // =====================================================
 
@@ -371,7 +395,7 @@ class SyncWorker(
                 )
 
             // =====================================================
-            // 4. SZINKRON ÁLLAPOT MENTÉSE
+            // 5. SZINKRON ÁLLAPOT MENTÉSE
             // =====================================================
 
             val syncTime =
@@ -488,6 +512,11 @@ class SyncWorker(
                         .downloadedUpdated
                 )
 
+                .putInt(
+                    "last_sync_downloaded_work_areas",
+                    downloadedWorkAreas
+                )
+
                 .apply()
 
             try {
@@ -530,6 +559,57 @@ class SyncWorker(
 
             Result.retry()
         }
+    }
+
+    // =========================================================
+    // SZERVER OLDALI MUNKATERÜLETEK TÜKRÖZÉSE PDA-RA
+    // =========================================================
+
+    private suspend fun applyServerWorkAreasToLocalDatabase(
+        db: hu.paksiinformatika.mobilblokkolo.data.local.AppDatabase,
+        serverWorkAreas: List<WorkAreaDto>
+    ): Int {
+
+        val now =
+            System.currentTimeMillis()
+
+        val localWorkAreas =
+            serverWorkAreas.map { workArea ->
+                WorkAreaEntity(
+                    serverId =
+                        workArea.id,
+
+                    companyId =
+                        workArea.company_id,
+
+                    name =
+                        workArea.name,
+
+                    latitude =
+                        workArea.latitude,
+
+                    longitude =
+                        workArea.longitude,
+
+                    radiusMeters =
+                        workArea.radius_meters,
+
+                    updatedAt =
+                        parseServerTimestamp(
+                            workArea.updated_at
+                        ) ?: now
+                )
+            }
+
+        db.workAreaDao()
+            .deleteAll()
+
+        db.workAreaDao()
+            .upsertAll(
+                localWorkAreas
+            )
+
+        return localWorkAreas.size
     }
 
     // =========================================================

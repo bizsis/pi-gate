@@ -183,6 +183,26 @@ data class EventDto(
 )
 
 // =====================================================
+// MUNKATERÜLETEK LETÖLTÉSE
+// SZERVER -> PDA
+// =====================================================
+
+data class WorkAreasResponse(
+    val success: Boolean,
+    val work_areas: List<WorkAreaDto>
+)
+
+data class WorkAreaDto(
+    val id: Long,
+    val company_id: Long,
+    val name: String,
+    val latitude: Double,
+    val longitude: Double,
+    val radius_meters: Int,
+    val updated_at: String?
+)
+
+// =====================================================
 // ESEMÉNY FOTÓ FELTÖLTÉS
 // =====================================================
 
@@ -281,6 +301,16 @@ interface ApiService {
         @Header("Authorization")
         authorization: String
     ): EventsResponse
+
+    // -------------------------------------------------
+    // MUNKATERÜLETEK LETÖLTÉSE
+    // -------------------------------------------------
+
+    @GET("api/work-areas")
+    suspend fun getWorkAreas(
+        @Header("Authorization")
+        authorization: String
+    ): WorkAreasResponse
 
     // -------------------------------------------------
     // BLOKKOLÁSHOZ TARTOZÓ FOTÓ FELTÖLTÉSE

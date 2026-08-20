@@ -19,7 +19,8 @@ import java.util.Locale
 
 data class EventListItem(
     val event: EventEntity,
-    val employeeName: String
+    val employeeName: String,
+    val workAreaName: String?
 )
 
 class EventAdapter(
@@ -123,13 +124,15 @@ class EventAdapter(
             )
 
         holder.tvGps.text =
-            if (
+            if (!item.workAreaName.isNullOrBlank()) {
+                "Munkaterület: ${item.workAreaName}"
+            } else if (
                 event.latitude != null &&
                 event.longitude != null
             ) {
-                "GPS: ${event.latitude}, ${event.longitude}"
+                "Pozíció: ${event.latitude}, ${event.longitude}"
             } else {
-                "GPS: nincs adat"
+                "Pozíció: nincs adat"
             }
 
         holder.tvSyncStatus.text =

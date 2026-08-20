@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\EmployeeSyncController;
 use App\Http\Controllers\Api\EventController;
 use App\Http\Controllers\Api\EventPhotoController;
 use App\Http\Controllers\Api\SoftwareUpdateController;
+use App\Http\Controllers\Api\WorkAreaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +45,11 @@ Route::middleware('device.auth')->group(function () {
     Route::get(
         '/events',
         [EventController::class, 'index']
+    );
+
+    Route::get(
+        '/work-areas',
+        [WorkAreaController::class, 'index']
     );
 
     Route::post(
