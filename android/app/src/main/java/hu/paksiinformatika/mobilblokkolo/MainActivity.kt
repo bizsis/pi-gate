@@ -6,6 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Handler
+import android.os.Looper
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.os.Bundle
@@ -49,9 +53,35 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private lateinit var tvDirectionLeft: TextView
     private lateinit var tvDirectionRight: TextView
 
+    private lateinit var tvStatusTime: TextView
+    private lateinit var tvSyncStatusIcon: TextView
+    private lateinit var tvSyncBadge: TextView
+    private lateinit var tvNetworkStatus: TextView
+    private lateinit var tvUpdateStatus: TextView
+    private lateinit var tvNotificationStatus: TextView
+
+    private val statusHandler =
+        Handler(Looper.getMainLooper())
+
+    private val statusRunnable =
+        object : Runnable {
+            override fun run() {
+                updateStatusBar()
+
+                statusHandler.postDelayed(
+                    this,
+                    30_000L
+                )
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        applyFullscreenMode()
+
+        bindStatusBar()
 
         KioskManager.configureDeviceOwnerPolicies(this)
 
@@ -450,6 +480,192 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         KioskManager.startKioskIfOwner(this)
     }
 
+
+    private fun applyFullscreenMode() {
+
+        window.decorView.systemUiVisibility =
+            View.SYSTEM_UI_FLAG_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY or
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+    }
+
+    // =========================================================
+    // FELSŐ STÁTUSZSÁV
+    // =========================================================
+
+    private fun bindStatusBar() {
+
+        tvStatusTime =
+            findViewById(
+                R.id.tvStatusTime
+            )
+
+        tvSyncStatusIcon =
+            findViewById(
+                R.id.tvSyncStatusIcon
+            )
+
+        tvSyncBadge =
+            findViewById(
+                R.id.tvSyncBadge
+            )
+
+        tvNetworkStatus =
+            findViewById(
+                R.id.tvNetworkStatus
+            )
+
+        tvUpdateStatus =
+            findViewById(
+                R.id.tvUpdateStatus
+            )
+
+        tvNotificationStatus =
+            findViewById(
+                R.id.tvNotificationStatus
+            )
+
+        tvUpdateStatus.text =
+            "✓"
+
+        tvUpdateStatus.setTextColor(
+            0xFF1C9B55.toInt()
+        )
+
+        tvNotificationStatus.visibility =
+            View.INVISIBLE
+
+        updateStatusBar()
+    }
+
+    private fun updateStatusBar() {
+
+        tvStatusTime.text =
+            SimpleDateFormat(
+                "HH:mm",
+                Locale.getDefault()
+            ).format(
+                Date()
+            )
+
+        updateNetworkStatus()
+        updatePendingSyncStatus()
+    }
+
+    private fun updateNetworkStatus() {
+
+        val connectivityManager =
+            getSystemService(
+                Context.CONNECTIVITY_SERVICE
+            ) as ConnectivityManager
+
+        val network =
+            connectivityManager.activeNetwork
+
+        val capabilities =
+            network
+                ?.let {
+                    connectivityManager.getNetworkCapabilities(
+                        it
+                    )
+                }
+
+        when {
+
+            capabilities == null -> {
+                tvNetworkStatus.text =
+                    "OFF"
+
+                tvNetworkStatus.setTextColor(
+                    0xFFA83D3D.toInt()
+                )
+            }
+
+            capabilities.hasTransport(
+                NetworkCapabilities.TRANSPORT_WIFI
+            ) -> {
+                tvNetworkStatus.text =
+                    "Wi-Fi"
+
+                tvNetworkStatus.setTextColor(
+                    0xFF0B3768.toInt()
+                )
+            }
+
+            capabilities.hasTransport(
+                NetworkCapabilities.TRANSPORT_CELLULAR
+            ) -> {
+                tvNetworkStatus.text =
+                    "▂▄▆ 4G"
+
+                tvNetworkStatus.setTextColor(
+                    0xFF0B3768.toInt()
+                )
+            }
+
+            else -> {
+                tvNetworkStatus.text =
+                    "NET"
+
+                tvNetworkStatus.setTextColor(
+                    0xFF687386.toInt()
+                )
+            }
+        }
+    }
+
+    private fun updatePendingSyncStatus() {
+
+        lifecycleScope.launch {
+
+            val db =
+                DatabaseProvider.getDatabase(
+                    this@MainActivity
+                )
+
+            val pendingEvents =
+                db.eventDao()
+                    .getUnsynced()
+
+            val pendingCount =
+                pendingEvents.size
+
+            if (pendingCount == 0) {
+
+                tvSyncStatusIcon.text =
+                    "✓"
+
+                tvSyncStatusIcon.setTextColor(
+                    0xFF1C9B55.toInt()
+                )
+
+                tvSyncBadge.visibility =
+                    View.GONE
+
+            } else {
+
+                tvSyncStatusIcon.text =
+                    "⇅"
+
+                tvSyncStatusIcon.setTextColor(
+                    0xFFF59E0B.toInt()
+                )
+
+                tvSyncBadge.text =
+                    if (pendingCount > 99) {
+                        "99+"
+                    } else {
+                        pendingCount.toString()
+                    }
+
+                tvSyncBadge.visibility =
+                    View.VISIBLE
+            }
+        }
+    }
     // =========================================================
     // ÉRKEZÉS / TÁVOZÁS ALAPÉRTELMEZÉS
     // =========================================================
@@ -545,7 +761,12 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
         loadDefaultDirection()
 
+        applyFullscreenMode()
+
         KioskManager.startKioskIfOwner(this)
+
+        statusHandler.removeCallbacks(statusRunnable)
+        statusHandler.post(statusRunnable)
 
         nfcAdapter?.enableReaderMode(
             this,
@@ -641,6 +862,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         nfcAdapter?.disableReaderMode(
             this
         )
+
+        statusHandler.removeCallbacks(statusRunnable)
     }
 
     // =========================================================
@@ -937,6 +1160,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                         )
                     )
                     SyncManager.requestSync(this@MainActivity)
+                    updateStatusBar()
                     runOnUiThread {
 
                         updateDirectionToggle()
@@ -979,3 +1203,5 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         }
     }
 }
+
+
