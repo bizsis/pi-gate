@@ -4,10 +4,12 @@ import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.BatteryManager
 import android.os.Handler
 import android.os.Looper
 import android.nfc.NfcAdapter
@@ -59,6 +61,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private lateinit var tvSyncBadge: TextView
     private lateinit var imgNetworkStatus: ImageView
     private lateinit var tvNetworkLabel: TextView
+    private lateinit var imgBatteryStatus: ImageView
+    private lateinit var tvBatteryStatus: TextView
     private lateinit var imgUpdateStatus: ImageView
     private lateinit var imgNotificationStatus: ImageView
     private lateinit var notificationDot: View
@@ -539,6 +543,16 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 R.id.tvNetworkLabel
             )
 
+        imgBatteryStatus =
+            findViewById(
+                R.id.imgBatteryStatus
+            )
+
+        tvBatteryStatus =
+            findViewById(
+                R.id.tvBatteryStatus
+            )
+
         imgUpdateStatus =
             findViewById(
                 R.id.imgUpdateStatus
@@ -579,8 +593,74 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             )
 
         updateNetworkStatus()
+        updateBatteryStatus()
         updatePendingSyncStatus()
         updateSoftwareUpdateStatus()
+    }
+
+    private fun updateBatteryStatus() {
+
+        val batteryStatus =
+            registerReceiver(
+                null,
+                IntentFilter(
+                    Intent.ACTION_BATTERY_CHANGED
+                )
+            ) ?: return
+
+        val level =
+            batteryStatus.getIntExtra(
+                BatteryManager.EXTRA_LEVEL,
+                -1
+            )
+
+        val scale =
+            batteryStatus.getIntExtra(
+                BatteryManager.EXTRA_SCALE,
+                -1
+            )
+
+        val status =
+            batteryStatus.getIntExtra(
+                BatteryManager.EXTRA_STATUS,
+                -1
+            )
+
+        if (level < 0 || scale <= 0) {
+            tvBatteryStatus.text =
+                "--"
+
+            return
+        }
+
+        val percent =
+            (level * 100) / scale
+
+        val charging =
+            status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                    status == BatteryManager.BATTERY_STATUS_FULL
+
+        tvBatteryStatus.text =
+            if (charging) {
+                "⚡$percent"
+            } else {
+                percent.toString()
+            }
+
+        tvBatteryStatus.setTextColor(
+            when {
+                percent <= 20 -> 0xFFA83D3D.toInt()
+                charging -> 0xFF1C9B55.toInt()
+                else -> 0xFF111827.toInt()
+            }
+        )
+
+        imgBatteryStatus.alpha =
+            if (percent <= 20) {
+                0.7f
+            } else {
+                1.0f
+            }
     }
 
     private fun updateSoftwareUpdateStatus() {
