@@ -2,12 +2,16 @@ package hu.paksiinformatika.mobilblokkolo
 
 import android.content.Intent
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import hu.paksiinformatika.mobilblokkolo.data.local.EventEntity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -70,6 +74,40 @@ class EventAdapter(
         val event =
             item.event
 
+        val card =
+            holder.itemView as MaterialCardView
+
+        if (event.eventType == "IN") {
+            card.setCardBackgroundColor(
+                ContextCompat.getColor(
+                    holder.itemView.context,
+                    R.color.event_in_background
+                )
+            )
+            card.strokeColor =
+                ContextCompat.getColor(
+                    holder.itemView.context,
+                    R.color.event_in_stroke
+                )
+        } else {
+            card.setCardBackgroundColor(
+                ContextCompat.getColor(
+                    holder.itemView.context,
+                    R.color.event_out_background
+                )
+            )
+            card.strokeColor =
+                ContextCompat.getColor(
+                    holder.itemView.context,
+                    R.color.event_out_stroke
+                )
+        }
+
+        card.strokeWidth =
+            holder.itemView.resources.getDimensionPixelSize(
+                R.dimen.event_card_stroke_width
+            )
+
         holder.tvEmployeeName.text =
             item.employeeName
 
@@ -100,6 +138,13 @@ class EventAdapter(
             } else {
                 "Nincs szinkronizálva"
             }
+
+        holder.itemView.setOnClickListener {
+            openEventOnMap(
+                holder,
+                item
+            )
+        }
 
         if (event.photoPath != null) {
 
@@ -143,4 +188,69 @@ class EventAdapter(
 
     override fun getItemCount(): Int =
         items.size
+
+    private fun openEventOnMap(
+        holder: EventViewHolder,
+        item: EventListItem
+    ) {
+
+        val latitude =
+            item.event.latitude
+
+        val longitude =
+            item.event.longitude
+
+        if (
+            latitude == null ||
+            longitude == null
+        ) {
+            Toast.makeText(
+                holder.itemView.context,
+                "Ehhez az eseményhez nincs GPS adat.",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        val eventLabel =
+            if (item.event.eventType == "IN") {
+                "belépés"
+            } else {
+                "kilépés"
+            }
+
+        val label =
+            Uri.encode(
+                "${item.employeeName} - $eventLabel"
+            )
+
+        val mapUri =
+            Uri.parse(
+                "geo:$latitude,$longitude?q=$latitude,$longitude($label)"
+            )
+
+        val mapsIntent =
+            Intent(
+                Intent.ACTION_VIEW,
+                mapUri
+            ).setPackage(
+                "com.google.android.apps.maps"
+            )
+
+        val context =
+            holder.itemView.context
+
+        if (mapsIntent.resolveActivity(context.packageManager) != null) {
+            context.startActivity(mapsIntent)
+        } else {
+            context.startActivity(
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse(
+                        "https://www.google.com/maps?q=$latitude,$longitude"
+                    )
+                )
+            )
+        }
+    }
 }

@@ -41,4 +41,9 @@ class Company extends Model
     {
         return $this->hasMany(Event::class);
     }
+
+    public function workAreas(): HasMany
+    {
+        return $this->hasMany(WorkArea::class);
+    }
 }

@@ -2,4 +2,8 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="event_in_background">#EAF7EF</color>
+    <color name="event_in_stroke">#2F9D62</color>
+    <color name="event_out_background">#FFF3E0</color>
+    <color name="event_out_stroke">#F28C00</color>
 </resources>

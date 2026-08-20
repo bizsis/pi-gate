@@ -59,6 +59,7 @@
                         <th>Eszköz</th>
                         <th>Típus</th>
                         <th>GPS</th>
+                        <th>Munkaterület</th>
                         <th>Fotók</th>
                         <th>Mobil UUID</th>
                         <th></th>
@@ -83,8 +84,37 @@
                                     >
                                         {{ $event->latitude }}, {{ $event->longitude }}
                                     </a>
+                                    @if ($event->company_id)
+                                        <br>
+                                        <a
+                                            class="muted"
+                                            href="{{ route('admin.work-areas.create', ['company_id' => $event->company_id, 'latitude' => $event->latitude, 'longitude' => $event->longitude]) }}"
+                                        >
+                                            Munkaterületként mentés
+                                        </a>
+                                    @endif
                                 @else
                                     -
+                                @endif
+                            </td>
+                            <td>
+                                @php($status = $event->work_area_status ?? null)
+                                @if (! $event->latitude || ! $event->longitude)
+                                    <span class="muted">Nincs GPS</span>
+                                @elseif (! $status)
+                                    <span class="badge warn">Nincs munkaterület</span>
+                                @elseif ($status['outside'])
+                                    <span class="badge bad">50 m-en kívül</span>
+                                    <div class="muted">
+                                        {{ $status['work_area']->name }}:
+                                        {{ number_format($status['distance_meters'], 0, ',', ' ') }} m
+                                    </div>
+                                @else
+                                    <span class="badge ok">Rendben</span>
+                                    <div class="muted">
+                                        {{ $status['work_area']->name }}:
+                                        {{ number_format($status['distance_meters'], 0, ',', ' ') }} m
+                                    </div>
                                 @endif
                             </td>
                             <td>
@@ -100,7 +130,7 @@
                             <td><a class="action secondary" href="{{ route('admin.events.edit', $event) }}">Szerkesztés</a></td>
                         </tr>
                     @empty
-                        <tr><td colspan="11" class="muted">Nincs blokkolás.</td></tr>
+                        <tr><td colspan="12" class="muted">Nincs blokkolás.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -10,6 +10,8 @@ use App\Models\DeviceSyncLog;
 use App\Models\Employee;
 use App\Models\Event;
 use App\Models\EventPhoto;
+use App\Models\WorkArea;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -127,31 +129,81 @@ class AdminDashboardController extends Controller
     public function events(Request $request): View
     {
         $filters = $request->only(['q', 'company_id', 'event_type', 'date_from', 'date_to']);
+        $events = Event::query()
+            ->with(['company', 'device', 'employee', 'card', 'photos'])
+            ->when($request->filled('q'), function ($query) use ($request): void {
+                $search = '%' . $request->string('q')->toString() . '%';
+
+                $query->where(function ($query) use ($search): void {
+                    $query
+                        ->where('client_event_uuid', 'like', $search)
+                        ->orWhereHas('employee', fn ($query) => $query->where('name', 'like', $search))
+                        ->orWhereHas('card', fn ($query) => $query->where('card_number', 'like', $search))
+                        ->orWhereHas('device', fn ($query) => $query->where('name', 'like', $search)->orWhere('device_uid', 'like', $search));
+                });
+            })
+            ->when($request->integer('company_id'), fn ($query, $companyId) => $query->where('company_id', $companyId))
+            ->when(in_array($request->string('event_type')->toString(), ['IN', 'OUT'], true), fn ($query) => $query->where('event_type', $request->string('event_type')->toString()))
+            ->when($request->filled('date_from'), fn ($query) => $query->whereDate('event_at', '>=', $request->date('date_from')))
+            ->when($request->filled('date_to'), fn ($query) => $query->whereDate('event_at', '<=', $request->date('date_to')))
+            ->latest('created_at')
+            ->paginate(50)
+            ->withQueryString();
+
+        $workAreasByCompany = WorkArea::query()
+            ->where('active', true)
+            ->whereIn('company_id', $events->getCollection()->pluck('company_id')->filter()->unique())
+            ->get()
+            ->groupBy('company_id');
+
+        $events->getCollection()->each(function (Event $event) use ($workAreasByCompany): void {
+            $event->work_area_status = $this->workAreaStatus($event, $workAreasByCompany->get($event->company_id, collect()));
+        });
 
         return view('admin.events.index', [
             'companies' => Company::query()->orderBy('name')->get(['id', 'name']),
             'filters' => $filters,
-            'events' => Event::query()
-                ->with(['company', 'device', 'employee', 'card', 'photos'])
-                ->when($request->filled('q'), function ($query) use ($request): void {
-                    $search = '%' . $request->string('q')->toString() . '%';
-
-                    $query->where(function ($query) use ($search): void {
-                        $query
-                            ->where('client_event_uuid', 'like', $search)
-                            ->orWhereHas('employee', fn ($query) => $query->where('name', 'like', $search))
-                            ->orWhereHas('card', fn ($query) => $query->where('card_number', 'like', $search))
-                            ->orWhereHas('device', fn ($query) => $query->where('name', 'like', $search)->orWhere('device_uid', 'like', $search));
-                    });
-                })
-                ->when($request->integer('company_id'), fn ($query, $companyId) => $query->where('company_id', $companyId))
-                ->when(in_array($request->string('event_type')->toString(), ['IN', 'OUT'], true), fn ($query) => $query->where('event_type', $request->string('event_type')->toString()))
-                ->when($request->filled('date_from'), fn ($query) => $query->whereDate('event_at', '>=', $request->date('date_from')))
-                ->when($request->filled('date_to'), fn ($query) => $query->whereDate('event_at', '<=', $request->date('date_to')))
-                ->latest('created_at')
-                ->paginate(50)
-                ->withQueryString(),
+            'events' => $events,
         ]);
+    }
+
+    private function workAreaStatus(Event $event, Collection $workAreas): ?array
+    {
+        if ($event->latitude === null || $event->longitude === null || $workAreas->isEmpty()) {
+            return null;
+        }
+
+        $nearest = null;
+
+        foreach ($workAreas as $workArea) {
+            $distance = $this->distanceMeters(
+                (float) $event->latitude,
+                (float) $event->longitude,
+                (float) $workArea->latitude,
+                (float) $workArea->longitude,
+            );
+
+            if ($nearest === null || $distance < $nearest['distance_meters']) {
+                $nearest = [
+                    'work_area' => $workArea,
+                    'distance_meters' => $distance,
+                    'outside' => $distance > $workArea->radius_meters,
+                ];
+            }
+        }
+
+        return $nearest;
+    }
+
+    private function distanceMeters(float $lat1, float $lon1, float $lat2, float $lon2): float
+    {
+        $earthRadiusMeters = 6371000;
+        $latDelta = deg2rad($lat2 - $lat1);
+        $lonDelta = deg2rad($lon2 - $lon1);
+        $a = sin($latDelta / 2) ** 2
+            + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($lonDelta / 2) ** 2;
+
+        return $earthRadiusMeters * 2 * atan2(sqrt($a), sqrt(1 - $a));
     }
 
     public function photos(Request $request): View

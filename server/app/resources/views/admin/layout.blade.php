@@ -415,6 +415,7 @@
                 <a class="{{ request()->routeIs('admin.employees') ? 'active' : '' }}" href="{{ route('admin.employees') }}">Dolgozók / kártyák</a>
                 <a class="{{ request()->routeIs('admin.devices') ? 'active' : '' }}" href="{{ route('admin.devices') }}">Eszközök</a>
                 <a class="{{ request()->routeIs('admin.events') ? 'active' : '' }}" href="{{ route('admin.events') }}">Blokkolások</a>
+                <a class="{{ request()->routeIs('admin.work-areas*') ? 'active' : '' }}" href="{{ route('admin.work-areas') }}">Munkaterületek</a>
                 <a class="{{ request()->routeIs('admin.worktime') ? 'active' : '' }}" href="{{ route('admin.worktime') }}">Munkaidő</a>
                 <a class="{{ request()->routeIs('admin.photos') ? 'active' : '' }}" href="{{ route('admin.photos') }}">Fotók</a>
                 <a class="{{ request()->routeIs('admin.logs') ? 'active' : '' }}" href="{{ route('admin.logs') }}">Napló</a>

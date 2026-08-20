@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\AdminLogController;
 use App\Http\Controllers\Admin\AdminPhotoController;
 use App\Http\Controllers\Admin\AdminSoftwareUpdateController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Admin\AdminWorkAreaController;
 use App\Http\Controllers\Admin\AdminWorktimeController;
 use Illuminate\Support\Facades\Route;
 
@@ -95,6 +96,24 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
     Route::delete('/events/{event}', [AdminEventController::class, 'destroy'])
         ->name('events.destroy');
+
+    Route::get('/work-areas', [AdminWorkAreaController::class, 'index'])
+        ->name('work-areas');
+
+    Route::get('/work-areas/create', [AdminWorkAreaController::class, 'create'])
+        ->name('work-areas.create');
+
+    Route::post('/work-areas', [AdminWorkAreaController::class, 'store'])
+        ->name('work-areas.store');
+
+    Route::get('/work-areas/{workArea}/edit', [AdminWorkAreaController::class, 'edit'])
+        ->name('work-areas.edit');
+
+    Route::put('/work-areas/{workArea}', [AdminWorkAreaController::class, 'update'])
+        ->name('work-areas.update');
+
+    Route::delete('/work-areas/{workArea}', [AdminWorkAreaController::class, 'destroy'])
+        ->name('work-areas.destroy');
 
     Route::get('/worktime', [AdminWorktimeController::class, 'index'])
         ->name('worktime');
