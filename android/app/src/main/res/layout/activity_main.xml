@@ -501,7 +501,7 @@
                 android:id="@+id/footerVersion"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Verzió: v1.2.154"
+                android:text="Verzió: v1.2.155"
                 android:textColor="#687386"
                 android:textSize="11sp"
                 app:layout_constraintEnd_toEndOf="parent"

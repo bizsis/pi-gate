@@ -2,7 +2,6 @@ package hu.paksiinformatika.mobilblokkolo
 
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -222,38 +221,35 @@ class EventAdapter(
                 "kilépés"
             }
 
-        val label =
-            Uri.encode(
+        val title =
+            if (item.workAreaName.isNullOrBlank()) {
                 "${item.employeeName} - $eventLabel"
-            )
+            } else {
+                item.workAreaName
+            }
 
-        val mapUri =
-            Uri.parse(
-                "geo:$latitude,$longitude?q=$latitude,$longitude($label)"
-            )
-
-        val mapsIntent =
+        val intent =
             Intent(
-                Intent.ACTION_VIEW,
-                mapUri
-            ).setPackage(
-                "com.google.android.apps.maps"
+                holder.itemView.context,
+                EventMapActivity::class.java
             )
 
-        val context =
-            holder.itemView.context
+        intent.putExtra(
+            "latitude",
+            latitude
+        )
 
-        if (mapsIntent.resolveActivity(context.packageManager) != null) {
-            context.startActivity(mapsIntent)
-        } else {
-            context.startActivity(
-                Intent(
-                    Intent.ACTION_VIEW,
-                    Uri.parse(
-                        "https://www.google.com/maps?q=$latitude,$longitude"
-                    )
-                )
-            )
-        }
+        intent.putExtra(
+            "longitude",
+            longitude
+        )
+
+        intent.putExtra(
+            "title",
+            title
+        )
+
+        holder.itemView.context
+            .startActivity(intent)
     }
 }

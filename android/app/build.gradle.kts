@@ -13,8 +13,8 @@ android {
         applicationId = "hu.paksiinformatika.mobilblokkolo"
         minSdk = 24
         targetSdk = 37
-        versionCode = 9
-        versionName = "1.2.154"
+        versionCode = 10
+        versionName = "1.2.155"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
