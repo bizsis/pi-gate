@@ -15,6 +15,7 @@ import android.nfc.Tag
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -54,11 +55,13 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private lateinit var tvDirectionRight: TextView
 
     private lateinit var tvStatusTime: TextView
-    private lateinit var tvSyncStatusIcon: TextView
+    private lateinit var imgSyncStatusIcon: ImageView
     private lateinit var tvSyncBadge: TextView
-    private lateinit var tvNetworkStatus: TextView
-    private lateinit var tvUpdateStatus: TextView
-    private lateinit var tvNotificationStatus: TextView
+    private lateinit var imgNetworkStatus: ImageView
+    private lateinit var tvNetworkLabel: TextView
+    private lateinit var imgUpdateStatus: ImageView
+    private lateinit var imgNotificationStatus: ImageView
+    private lateinit var notificationDot: View
 
     private val statusHandler =
         Handler(Looper.getMainLooper())
@@ -503,9 +506,9 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 R.id.tvStatusTime
             )
 
-        tvSyncStatusIcon =
+        imgSyncStatusIcon =
             findViewById(
-                R.id.tvSyncStatusIcon
+                R.id.imgSyncStatusIcon
             )
 
         tvSyncBadge =
@@ -513,30 +516,41 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
                 R.id.tvSyncBadge
             )
 
-        tvNetworkStatus =
+        imgNetworkStatus =
             findViewById(
-                R.id.tvNetworkStatus
+                R.id.imgNetworkStatus
             )
 
-        tvUpdateStatus =
+        tvNetworkLabel =
             findViewById(
-                R.id.tvUpdateStatus
+                R.id.tvNetworkLabel
             )
 
-        tvNotificationStatus =
+        imgUpdateStatus =
             findViewById(
-                R.id.tvNotificationStatus
+                R.id.imgUpdateStatus
             )
 
-        tvUpdateStatus.text =
-            "✓"
+        imgNotificationStatus =
+            findViewById(
+                R.id.imgNotificationStatus
+            )
 
-        tvUpdateStatus.setTextColor(
-            0xFF1C9B55.toInt()
+        notificationDot =
+            findViewById(
+                R.id.notificationDot
+            )
+
+        imgUpdateStatus.setImageResource(
+            R.drawable.ic_update_ok
         )
 
-        tvNotificationStatus.visibility =
-            View.INVISIBLE
+        imgNotificationStatus.setImageResource(
+            R.drawable.ic_bell_ok
+        )
+
+        notificationDot.visibility =
+            View.GONE
 
         updateStatusBar()
     }
@@ -576,43 +590,43 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         when {
 
             capabilities == null -> {
-                tvNetworkStatus.text =
-                    "OFF"
-
-                tvNetworkStatus.setTextColor(
-                    0xFFA83D3D.toInt()
+                imgNetworkStatus.setImageResource(
+                    R.drawable.ic_network_offline
                 )
+
+                tvNetworkLabel.text =
+                    ""
             }
 
             capabilities.hasTransport(
                 NetworkCapabilities.TRANSPORT_WIFI
             ) -> {
-                tvNetworkStatus.text =
-                    "Wi-Fi"
-
-                tvNetworkStatus.setTextColor(
-                    0xFF0B3768.toInt()
+                imgNetworkStatus.setImageResource(
+                    R.drawable.ic_wifi_status
                 )
+
+                tvNetworkLabel.text =
+                    ""
             }
 
             capabilities.hasTransport(
                 NetworkCapabilities.TRANSPORT_CELLULAR
             ) -> {
-                tvNetworkStatus.text =
-                    "▂▄▆ 4G"
-
-                tvNetworkStatus.setTextColor(
-                    0xFF0B3768.toInt()
+                imgNetworkStatus.setImageResource(
+                    R.drawable.ic_cellular_status
                 )
+
+                tvNetworkLabel.text =
+                    "4G"
             }
 
             else -> {
-                tvNetworkStatus.text =
-                    "NET"
-
-                tvNetworkStatus.setTextColor(
-                    0xFF687386.toInt()
+                imgNetworkStatus.setImageResource(
+                    R.drawable.ic_wifi_status
                 )
+
+                tvNetworkLabel.text =
+                    ""
             }
         }
     }
@@ -635,11 +649,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
             if (pendingCount == 0) {
 
-                tvSyncStatusIcon.text =
-                    "✓"
-
-                tvSyncStatusIcon.setTextColor(
-                    0xFF1C9B55.toInt()
+                imgSyncStatusIcon.setImageResource(
+                    R.drawable.ic_sync_cloud_ok
                 )
 
                 tvSyncBadge.visibility =
@@ -647,11 +658,8 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
             } else {
 
-                tvSyncStatusIcon.text =
-                    "⇅"
-
-                tvSyncStatusIcon.setTextColor(
-                    0xFFF59E0B.toInt()
+                imgSyncStatusIcon.setImageResource(
+                    R.drawable.ic_sync_cloud_pending
                 )
 
                 tvSyncBadge.text =
