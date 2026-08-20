@@ -13,6 +13,8 @@ import android.widget.Toast
 object KioskManager {
 
     private const val SETTINGS_PACKAGE = "com.android.settings"
+    private const val DEFAULT_LAUNCHER_PACKAGE = "com.android.launcher3"
+    private const val DEFAULT_LAUNCHER_ACTIVITY = "com.android.searchlauncher.SearchLauncher"
 
     fun adminComponent(context: Context): ComponentName {
         return ComponentName(
@@ -120,12 +122,37 @@ object KioskManager {
                 adminComponent(activity),
                 activity.packageName
             )
+
+            val homeFilter =
+                android.content.IntentFilter(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    addCategory(Intent.CATEGORY_DEFAULT)
+                }
+
+            dpm.addPersistentPreferredActivity(
+                adminComponent(activity),
+                homeFilter,
+                ComponentName(
+                    DEFAULT_LAUNCHER_PACKAGE,
+                    DEFAULT_LAUNCHER_ACTIVITY
+                )
+            )
         }
     }
 
     fun openWifiSettings(activity: Activity) {
         val intent =
             Intent(Settings.ACTION_WIFI_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+        activity.startActivity(intent)
+    }
+
+    fun openHome(activity: Activity) {
+        val intent =
+            Intent(Intent.ACTION_MAIN).apply {
+                addCategory(Intent.CATEGORY_HOME)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 

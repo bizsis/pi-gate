@@ -567,14 +567,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         ) {
             KioskManager.unlockForAdminExit(this)
 
-            val homeIntent =
-                Intent(Intent.ACTION_MAIN).apply {
-                    addCategory(Intent.CATEGORY_HOME)
-                    flags =
-                        Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-
-            startActivity(homeIntent)
+            KioskManager.openHome(this)
 
             finishAndRemoveTask()
         }
